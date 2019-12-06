@@ -1,4 +1,4 @@
-# Duplicate-Bug-Identification-system
+# Duplicate-Bug-Identification-System
 
 Background: As software programs become increasingly large and complex, it is important to improve the quality of software maintenance.  Bug  report recommendations can significantly improve the triaging of bug reports. It is difficult to inspect the new incoming reports manually to route to the developers who have fixed the duplicate bugs.  Automatic identification of Duplicate bug reports is a critical research problem in the software repositories’  mining  area.
 
