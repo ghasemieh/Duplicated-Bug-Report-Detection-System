@@ -35,10 +35,12 @@ nlp = spacy.load('en_core_web_lg')
 # nltk.download('averaged_perceptron_tagger')
 # nltk.download('universal_tagset')
 import wordninja as nj  # for spliting the words in each documents
-import normalise as ns
+# import normalise as ns
 #from pycontractions import Contractions  # for expansion and contrations
 import contractions
 import re  # remove tags.
+import time
+import progressbar as pb
 
 def remove_nan(df):
     print('Remove NA')
@@ -79,8 +81,9 @@ def preprocessing(df, id, text_attribute_name):
     short_desc_splited = nj.split(short_desc_lowercase)
 
     # Apply normlise
-    short_desc_normalised = ns.normalise(short_desc_splited, verbose=False)
-    short_desc_normalised_listToStr = ' '.join(map(str, short_desc_normalised))
+    # short_desc_normalised = ns.normalise(short_desc_splited, verbose=False)
+
+    short_desc_normalised_listToStr = ' '.join(map(str, short_desc_splited))
 
     # Apply contractions/expansions
     short_desc_contract = contractions.fix(short_desc_normalised_listToStr)
@@ -94,25 +97,25 @@ def preprocessing(df, id, text_attribute_name):
 
     # Remove Punctuations and Stop words
     short_desc_doc = nlp(str(short_desc_removed_special_char))
-    short_desc_map = map(lambda token: token if (token.is_punct == False and token.is_stop == False) else None,
-                         short_desc_doc)
-    short_desc_list = list(short_desc_map)
-
-    # Convert list to string and remove one-character word
-    short_desc_string = ""
-    for element in short_desc_list:
-        if element is not None and len(element) > 1:
-            short_desc_string += str(element) + ' '
-    short_desc_string = short_desc_string[:-1]
-
+    short_desc_list = []
+    for token in short_desc_doc:
+        if token.is_punct == False and token.is_stop == False:
+            short_desc_list.append(token)
+        
+    #Convert list to string
+    short_desc_string = ""    
+    for element in short_desc_list:  
+        short_desc_string += str(element) +' '
+    
     # Stemming/Lemmatisation.
     short_desc_lemmata = [token.lemma_ for token in nlp(short_desc_string)]
     short_desc_preprocessed = ' '.join(map(str, short_desc_lemmata))
-    return short_desc_preprocessed
+
+    # Remove single letters
+    result = ' '.join( [w for w in short_desc_preprocessed.split() if len(w)>1] )
+    return result
 
 def text_preprocessing(df, text_attribute_name, sample_number=None):
-    import time
-    import progressbar as pb
     start_time = time.time()
     print('Preprocessing the text')
     if sample_number is not None:
@@ -147,66 +150,3 @@ def text_preprocessing(df, text_attribute_name, sample_number=None):
     # show the time of process
     print("Text preprocessing --- %s seconds ---" % (time.time() - start_time))
     return processed_data_df
-
-def index_to_id(df,original_df):
-    import time
-    import progressbar as pb
-    print('Convert index to id')
-    start_time = time.time()
-    progress = pb.ProgressBar(maxval=len(df)).start()
-    progvar = 0
-
-    for tup in df.itertuples():
-        df.loc[tup.Index,'id1'] = original_df.iloc[tup.id1]['id']
-        df.loc[tup.Index,'id2'] = original_df.iloc[tup.id2]['id']
-        progress.update(progvar + 1)
-        progvar += 1
-    print("Index to id and Remove diff product score\n --- %s seconds ---" % (time.time() - start_time))
-
-def index_to_id_remove_diff_product_score(df,original_df):
-    import time
-    import progressbar as pb
-    print('Convert index to id and remove diff product score')
-    start_time = time.time()
-    progress = pb.ProgressBar(maxval=len(df)).start()
-    progvar = 0
-
-    for tup in df.itertuples():
-        ID1 = original_df.iloc[tup.id1]['id']
-        ID2 = original_df.iloc[tup.id2]['id']
-        df.loc[tup.Index,'id1'] = ID1
-        df.loc[tup.Index,'id2'] = ID2
-        product1 = original_df.loc[lambda df: df['id'] == ID1,'product'].array[0]
-        product2 = original_df.loc[lambda df: df['id'] == ID2,'product'].array[0]
-        if product1 != product2:
-            df.drop([tup.Index],inplace=True)
-        progress.update(progvar + 1)
-        progvar += 1
-    print("Index to id and Remove diff product score\n --- %s seconds ---" % (time.time() - start_time))
-    
-def remove_diff_product_score(df,original_df):
-    import time
-    import progressbar as pb
-    print('Remove record of diff product')
-    start_time = time.time()
-    progress = pb.ProgressBar(maxval=len(df)).start()
-    progvar = 0
-
-    for tup in df.itertuples():
-        product1 = original_df.loc[lambda df: df['id'] == tup.id1,'product'].array[0]
-        product2 = original_df.loc[lambda df: df['id'] == tup.id2,'product'].array[0]
-        if product1 != product2:
-            df.drop([tup.Index],inplace=True)
-        progress.update(progvar + 1)
-        progvar += 1
-    print("Remove diff product score --- %s seconds ---" % (time.time() - start_time))
-    
-def id_builder(df):
-    length = len(str(len(df)))
-    ID = []
-    for x in df.itertuples():
-        ID1 = int(x.id1)
-        ID2 = int(x.id2)
-        ID.append(ID1*pow(10,length) + ID2)
-    ID_df = pd.DataFrame(ID, columns=['ID'])
-    return  pd.merge(df, ID_df, left_index=True, right_index=True)
