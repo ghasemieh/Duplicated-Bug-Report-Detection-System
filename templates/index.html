@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (c) 2020.
+  ~ Alireza Ghasemieh
+  ~ a.ghasemieh65@gmail.com
+  ~ https://github.com/ghasemieh
+  -->
+
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Task Master</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Task Master</h1>
+
+    <table>
+        <tr>
+            <th>Task</th>
+            <th>Added</th>
+            <th>Actions</th>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td>
+                <a href="">Delete</a>
+                <br>
+                <a href="">Update</a>
+            </td>
+        </tr>
+    </table>
+    <div class="form">
+        <form action="/" method="POST">
+            <input type="text" name="content" id="content">
+            <input type="submit" value="Add Task">
+        </form>
+    </div>
+</div>
+{% endblock %}
