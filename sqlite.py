@@ -3,22 +3,7 @@
 #  a.ghasemieh65@gmail.com
 #  https://github.com/ghasemieh
 
-from Bugzilla_API import API_data_extract
-from text_processing import preprocessing
-import pandas as pd
-import sqlite as sq
-import psycopg2
-
-# Extract data from Bugzilla website
-data_df = API_data_extract('2h')
-
-# Preprocess the data_df
-data_list = []
-for tup in data_df.itertuples():
-    processed_summary = preprocessing(data_df,tup.id,'summary')
-    data_list.append([tup.id,tup.product,tup.component,tup.creation_time,tup.summary,processed_summary,tup.status])
-new_data_df = pd.DataFrame(data_list,columns = ["id","product","component","creation_time","summary","processed_summary","status"])
-
+import sqlite3
 
 # Database Functions
 def create_table():
@@ -59,13 +44,3 @@ def update(id,processed_summary):
     cursor.execute("UPDATE bug_report_table SET processed_summary=? WHERE id=?",(processed_summary,id))
     connection.commit()
     connection.close()
-
-# Save into a SQL database
-create_table()
-for tup in new_data_df.itertuples():
-    sq.insert(tup.id,tup.product,tup.component,tup.creation_time,tup.summary,tup.processed_summary,tup.status)
-
-
-# Find the n-top similar bug report
-
-# Present on the website
