@@ -3,9 +3,10 @@
 #  a.ghasemieh65@gmail.com
 #  https://github.com/ghasemieh
 
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import mysql.connector
 import os
 
 app = Flask(__name__)
