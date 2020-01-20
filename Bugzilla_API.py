@@ -8,6 +8,7 @@ def API_data_extract(frequency = '2h'):
     response = requests.get(get_bug_url)
     response_json = response.json()
     data = response_json["bugs"]
+    print("Number of bug reports:", len(data))
     return pd.DataFrame(data)
 
 

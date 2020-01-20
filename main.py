@@ -9,8 +9,8 @@ import pandas as pd
 import postgres as ps
 
 
-# Extract data from Bugzilla website
-data_df = API_data_extract('2h')
+# Extract data from Bugzilla website fot the past 2 hours
+data_df = API_data_extract('3h')
 
 # Preprocess the data_df
 data_list = []
@@ -19,13 +19,11 @@ for tup in data_df.itertuples():
     data_list.append([tup.id,tup.product,tup.component,tup.creation_time,tup.summary,processed_summary,tup.status])
 new_data_df = pd.DataFrame(data_list,columns = ["id","product","component","creation_time","summary","processed_summary","status"])
 
-# Save into a SQL database
+# create the table if is not existed
 ps.create_table()
+# Save into a SQL database
 for tup in new_data_df.itertuples():
     ps.insert(tup.id,tup.product,tup.component,tup.creation_time,tup.summary,tup.processed_summary,tup.status)
-print(ps.view())
-ps.delete(1610213)
-ps.update(1610214,'Hellooooo')
 
 # Find the n-top similar bug report
 
