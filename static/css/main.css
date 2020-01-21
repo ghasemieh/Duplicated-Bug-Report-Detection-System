@@ -6,8 +6,15 @@
  */
 
 body, html {
-    margin: 0;
+    margin: 20px;
     font-family: sans-serif;
+}
+
+h1 {
+    height: auto;
+    width: 100%;
+    opacity: 0.9;
+    margin-bottom: 10px;
 }
 
 .content {
@@ -25,16 +32,23 @@ table {
 }
 
 th {
+    text-align: center;
     height: 30px;
+    color: #ba2216;
+    background-color: rgba(105, 190, 255, 0.59);
 }
 
 td {
-    text-align: center;
+    text-align: left;
     padding: 5px;
+    background-color: rgba(251, 255, 0, 0.15);
 }
 
 .form {
+
+    width: 300px;
     margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 #content {

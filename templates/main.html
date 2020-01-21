@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2020.
+  ~ Alireza Ghasemieh
+  ~ a.ghasemieh65@gmail.com
+  ~ https://github.com/ghasemieh
+  -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Duplicated Bug Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
+</head>
+<body>
+    <h1 style="text-align: center">Duplicated Bug Detection</h1>
+    <div class="form">
+        <form action="/update" method="POST">
+            <input type="submit" value="Update">
+        </form>
+    </div>
+    <div class="form">
+        <form action="/" method="POST">
+            <input type="text" name="id" id="id" placeholder=" Enter your bug id ... " >
+            <input type="submit" value="Search">
+        </form>
+    </div>
+    {% for table in tables %}
+                {{ table|safe }}
+    {% endfor %}
+</body>
+</html>
