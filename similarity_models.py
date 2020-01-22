@@ -135,7 +135,6 @@ def similarity_score(id, df, top_n):
 
 # Calculate the n-top similar bug report and return the list
 def n_top_finder(new_bug_df, n_top,main_database):
-
     sample_size = len(new_bug_df)
     progress = pb.ProgressBar(maxval=sample_size).start()
     progvar = 0

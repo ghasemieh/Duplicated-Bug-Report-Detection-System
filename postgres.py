@@ -16,11 +16,11 @@ def create_table():
     connection.commit()
     connection.close()
 
-def insert(id,product,component,creation_time,summary,processed_summary,status):
+def insert(id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary):
     connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO bug_report_table VALUES(%s,%s,%s,%s,%s,%s,%s)",
-                   (id, product, component, creation_time, summary, processed_summary, status))
+    cursor.execute("INSERT INTO bug_report_table VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                   (id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary))
     connection.commit()
     connection.close()
 
@@ -45,3 +45,11 @@ def update(id,processed_summary):
     cursor.execute("UPDATE bug_report_table SET processed_summary=%s WHERE id=%s",(processed_summary,id))
     connection.commit()
     connection.close()
+
+def extract(id):
+    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM bug_report_table WHERE id =%s",(id,))
+    rows = cursor.fetchall()
+    connection.close()
+    return rows
