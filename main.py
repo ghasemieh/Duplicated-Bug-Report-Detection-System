@@ -34,7 +34,7 @@ def refresh():
         try:
             global new_data_df
             # Extract data from Bugzilla website fot the past 2 hours
-            data_df = API_data_extract('2h')
+            data_df = API_data_extract('1d')
             # Preprocess the data_df
             data_list = []
             for tup in data_df.itertuples():
@@ -72,12 +72,11 @@ def find_id():
         # try:
         if task_id != '':
             df = ps.extract(task_id)
-            print(df)
         # find the similar bug report
             if not df.empty:
                 n_top(df)
-                return render_template('main.html', tables=[word2vec_df.to_html(classes='data')],
-                                       titles=word2vec_df.columns.values)
+                return render_template('main.html', tables=[result.to_html(classes='data')],
+                                       titles=result.columns.values)
             else:
                 return redirect('/')
         else:
@@ -96,12 +95,16 @@ def n_top(df):
         original_data = ps.view()
         trigger = 1
     similarity_list = sm.n_top_finder(df,10,original_data)
-    global word2vec_df
     word2vec_df = similarity_list[0][1]
-    global tfidf
     tfidf = similarity_list[0][2]
-    global bm25f
     bm25f = similarity_list[0][3]
+    global result
+    print(word2vec_df)
+    print(tfidf)
+    result = pd.merge(word2vec_df,tfidf, on='id',how='outer')
+    result = pd.merge(result,bm25f, on='id',how='outer')
+    id_summary_df = original_data[['id','summary']]
+    result = pd.merge(result,id_summary_df, on='id',how='left')
 
 
 if __name__ == "__main__":
