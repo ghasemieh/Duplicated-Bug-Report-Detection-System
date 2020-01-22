@@ -14,19 +14,19 @@ nlp = spacy.load('en_core_web_lg')
 execution_count_word2vec = 0
 processed_data_nlp_df = []
 
-# Convert short_desc str to nlp format to fasten the computation process
+# Convert summary str to nlp format to fasten the computation process
 def word2vec_preprocess(df):
-    print('Convert short_desc str to nlp format')
+    print('Convert summary str to nlp format')
     sample_size = len(df)
     progress = pb.ProgressBar(maxval=sample_size).start()
     progvar = 0
     processed_data_nlp = []
     for tup in df.itertuples():
-        processed_data_nlp.append((tup.id, tup.product, nlp(tup.short_desc_processed)))
+        processed_data_nlp.append((tup.id, tup.product, nlp(tup.processed_summary)))
         progress.update(progvar + 1)
         progvar += 1
     global processed_data_nlp_df
-    processed_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'short_desc_processed'])
+    processed_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'processed_summary'])
     global execution_count_word2vec
     execution_count_word2vec += 1
 
@@ -36,11 +36,11 @@ def word2vec_similarity(id, df):
         word2vec_preprocess(df)
     similarities_score_list = []
     product_main = processed_data_nlp_df.loc[lambda df: df['id'] == id, 'product'].array[0]
-    short_desc_processed_main = processed_data_nlp_df.loc[lambda df: df['id'] == id, 'short_desc_processed'].array[0]
+    processed_summary_main = processed_data_nlp_df.loc[lambda df: df['id'] == id, 'processed_summary'].array[0]
     for doc in processed_data_nlp_df.itertuples():
         product_other = processed_data_nlp_df.loc[lambda df: df['id'] == doc.id, 'product'].array[0]
         if product_main == product_other:
-            similarity_score = doc.short_desc_processed.similarity(short_desc_processed_main)
+            similarity_score = doc.processed_summary.similarity(processed_summary_main)
             similarities_score_list.append((doc.id, similarity_score))
     # convert to dataframe
     word2vec_similarities_score_df = pd.DataFrame(similarities_score_list, columns=['id', 'word2vec_score'])
@@ -54,7 +54,7 @@ tfidf_cosine_similarities = []
 execution_count_tfidf = 0
 
 def tfidf_preprocess(df):
-    X_train = df['short_desc_processed']
+    X_train = df['processed_summary']
     print('TF-idf Vectorization and similarity score computation')
     # Vectorization
     vectorizer = TfidfVectorizer()
@@ -90,14 +90,14 @@ processed_corpus_list = []
 bm25 = []
 execution_count_bm25 = 0
 
-# preprocess - tokenize the short_desc to token
+# preprocess - tokenize the summary to token
 def bm25_preprocess(df):
-    print('preprocess - tokenize the short_desc to token')
+    print('preprocess - tokenize the summary to token')
     global processed_corpus_list
     processed_corpus_list = []
     for x in df.itertuples():
-        short_desc_splited = x.short_desc_processed.split(" ")
-        processed_corpus_list.append(short_desc_splited)
+        summary_splited = x.processed_summary.split(" ")
+        processed_corpus_list.append(summary_splited)
     # Create a MB24 Object with the corpus
     global bm25
     bm25 = BM25Okapi(processed_corpus_list)
@@ -143,7 +143,7 @@ def n_top_finder(new_bug_df, n_top,main_database):
     for tup in new_bug_df.itertuples():
         word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df = similarity_score(tup.id, main_database,n_top)
         duplicated_similarity_score_list.append(
-            [tup.id, tup.dup, word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df])
+            [tup.id, word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df])
         progress.update(progvar + 1)
         progvar += 1
     return duplicated_similarity_score_list

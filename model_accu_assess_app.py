@@ -5,11 +5,12 @@
 # Assessment the Model Accuracy -------------------------------------------------------------------------------
 # Calculate the similarity score for the reported duplicated bug report
 import pandas as pd
-import similarity_models as sm
 import warnings
 warnings.filterwarnings('ignore')
 import pickle
 import text_processing as tp
+import progressbar as pb
+from similarity_models import similarity_score
 
 # Import dataset
 data = pd.read_csv('Data/TestData2500.csv',sep=',')
@@ -24,7 +25,22 @@ processed_data_df.to_csv('Data/processed_TestData2500_df.csv',index=False)
 # Load prosecced df from file to save time
 processed_data_df = pd.read_csv('Data/processed_TestData2500_df.csv',sep=',')
 duplicate_df = pd.read_csv('Data/duplicate_df.csv', sep=',')
-duplicated_similarity_score_list = sm.n_top_finder(new_bug_df = duplicate_df, n_top = 20, main_database = processed_data_df)
+
+def n_top_finder(new_bug_df, n_top,main_database):
+    sample_size = len(new_bug_df)
+    progress = pb.ProgressBar(maxval=sample_size).start()
+    progvar = 0
+    duplicated_similarity_score_list = []
+
+    for tup in new_bug_df.itertuples():
+        word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df = similarity_score(tup.id, main_database,n_top)
+        duplicated_similarity_score_list.append(
+            [tup.id, tup.dup, word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df])
+        progress.update(progvar + 1)
+        progvar += 1
+    return duplicated_similarity_score_list
+
+duplicated_similarity_score_list = n_top_finder(new_bug_df = duplicate_df, n_top = 20, main_database = processed_data_df)
 
 # # Save the list to a file since it takes 8 hours to create it
 # with open("Data/duplicated_similarity_score_list_2500.txt", "wb") as fp:  # Pickling
@@ -33,6 +49,7 @@ duplicated_similarity_score_list = sm.n_top_finder(new_bug_df = duplicate_df, n_
 # # Read the list from a file
 with open("Data/duplicated_similarity_score_list_2500.txt", "rb") as fp:  # Unpickling
     duplicated_similarity_score_list = pickle.load(fp)
+
 
 # Calculate the Recall rate
 def recall_rate_calculation(name_of_algorthem):

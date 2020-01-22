@@ -70,15 +70,18 @@ def find_id():
     if request.method == 'POST':
         task_id = request.form['id']
         # try:
-        # Buuuuuuuuuuuuuuuuuuuuuuuuuuggggggggggggggggggggggggggggggggggggggggg
-        result_list = ps.extract(task_id)
-        ls = list(result_list[0])
-        df = pd.DataFrame(ls,columns=["id", "type", "product", "component", "creation_time", "status",
-                                                "priority", "severity", "version", "summary", "processed_summary"])
-        print(df)
-            # find the similar bug report
-        print(n_top(df))
-        return redirect('/')
+        if task_id != '':
+            df = ps.extract(task_id)
+            print(df)
+        # find the similar bug report
+            if not df.empty:
+                n_top(df)
+                return render_template('main.html', tables=[word2vec_df.to_html(classes='data')],
+                                       titles=word2vec_df.columns.values)
+            else:
+                return redirect('/')
+        else:
+            return 'There was no entry'
         # except:
         #     return 'There was an issue calculating the similarity'
     else:
@@ -93,7 +96,13 @@ def n_top(df):
         original_data = ps.view()
         trigger = 1
     similarity_list = sm.n_top_finder(df,10,original_data)
-    print(similarity_list)
+    global word2vec_df
+    word2vec_df = similarity_list[0][1]
+    global tfidf
+    tfidf = similarity_list[0][2]
+    global bm25f
+    bm25f = similarity_list[0][3]
+
 
 if __name__ == "__main__":
     app.run(debug=True)
