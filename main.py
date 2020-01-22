@@ -8,14 +8,38 @@ from text_processing import preprocessing
 import pandas as pd
 import postgres as ps
 from flask import Flask, render_template, request, redirect
-import time
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 # Present on the website
-
 app = Flask(__name__)
+POSTGRES = {
+    'user': 'postgres',
+    'pw': 'password123',
+    'db': 'bug_database',
+    'host': '127.0.0.1',
+    'port': '5432',
+}
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
+db = SQLAlchemy(app)
+
+class Todo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(20), nullable=False)
+    product = db.Column(db.String(20), nullable=False)
+    component = db.Column(db.String(20), nullable=False)
+    creation_time = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), nullable=False)
+    priority = db.Column(db.String(5), nullable=False)
+    severity = db.Column(db.String(20), nullable=False)
+    version = db.Column(db.String(20), nullable=False)
+    summary = db.Column(db.String(200), nullable=False)
+    processed_summary = db.Column(db.String(200), nullable=False)
+
+    def __repr__(self):
+        return '<Task %r>' % self.id
 
 new_data_df = pd.DataFrame()
-
 @app.route('/', methods=['POST', 'GET'])
 def home():
     if request.method == 'POST':
@@ -39,6 +63,16 @@ def update():
         main()
         return redirect('/')
 
+@app.route('/find_id/<int:id>')
+def find_id(id):
+    task_content = request.form['id']
+    task = Todo.query.get_or_404(task_content)
+
+    try:
+        print(task)
+        return redirect('/')
+    except:
+        return 'There was a problem deleting that task'
 
 def main():
     # Extract data from Bugzilla website fot the past 2 hours
@@ -48,9 +82,11 @@ def main():
     data_list = []
     for tup in data_df.itertuples():
         processed_summary = preprocessing(data_df,tup.id,'summary')
-        data_list.append([tup.id,tup.product,tup.component,tup.creation_time,tup.summary,processed_summary,tup.status])
+        data_list.append([tup.id,tup.type, tup.product,tup.component,tup.creation_time,
+                          tup.status, tup.priority, tup.severity, tup.version, tup.summary,processed_summary])
     global new_data_df
-    new_data_df = pd.DataFrame(data_list,columns = ["id","product","component","creation_time","summary","processed_summary","status"])
+    new_data_df = pd.DataFrame(data_list,columns = ["id","type","product","component","creation_time","status","priority",
+                                                    "severity","version","summary","processed_summary"])
 
     # create the table if is not existed
     ps.create_table()

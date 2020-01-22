@@ -9,9 +9,10 @@ import psycopg2
 def create_table():
     connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
     cursor = connection.cursor()
-    cursor.execute("DROP TABLE bug_report_table")
-    cursor.execute("CREATE TABLE IF NOT EXISTS bug_report_table (id INTEGER,product TEXT,"
-                   "component TEXT, creation_time TEXT, summary TEXT,processed_summary TEXT, status TEXT)")
+    cursor.execute("DROP TABLE bug_report_table") # Must be removed for production environment
+    cursor.execute("CREATE TABLE IF NOT EXISTS bug_report_table (id INTEGER,type TEXT, product TEXT,component TEXT, "
+                   "creation_time TEXT, status TEXT, priority TEXT, severity TEXT,version TEXT, "
+                   "summary TEXT,processed_summary TEXT)")
     connection.commit()
     connection.close()
 
