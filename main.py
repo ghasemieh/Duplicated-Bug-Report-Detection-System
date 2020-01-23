@@ -63,7 +63,6 @@ def save_db(db_name = 'temp_bug_db'):
                       tup.priority,tup.severity,tup.version,tup.summary,tup.processed_summary)
         # Update the bug_db database
         ps.update_db()
-        # ps.delete(db_name)
         return redirect('/')
     except:
         return 'There was an issue adding your task'
@@ -71,21 +70,22 @@ def save_db(db_name = 'temp_bug_db'):
 @app.route('/find_similar',methods=['GET', 'POST'])
 def find_similar(db_name = 'bug_db'):
     if request.method == 'POST':
+        ps.update_db()
         task_id = request.form['id']
-        # try:
-        if task_id != '':
-            df = ps.extract(db_name, task_id)
-            # df = API_id_extract(task_id)
-        # find the similar bug report
-            if not df.empty:
-                n_top(df)
-                return render_template('main.html', tables=[result.to_html(classes='data')],titles=result.columns.values)
+        try:
+            if task_id != '':
+                df = ps.extract(db_name, task_id)
+                # df = API_id_extract(task_id)
+                # find the similar bug report
+                if not df.empty:
+                    n_top(df)
+                    return render_template('main.html', tables=[result.to_html(classes='data')],titles=result.columns.values)
+                else:
+                    return redirect('/')
             else:
-                return redirect('/')
-        else:
-            return 'There was no entry'
-        # except:
-        #     return 'There was an issue calculating the similarity'
+                return 'There was no entry'
+        except:
+            return 'There id is not in the database'
     else:
         return render_template('main.html', tables=[data_df.to_html(classes='data')],titles=data_df.columns.values)
 
