@@ -3,7 +3,7 @@
 #  a.ghasemieh65@gmail.com
 #  https://github.com/ghasemieh
 
-from Bugzilla_API import API_data_extract
+from Bugzilla_API import API_data_extract, API_id_extract
 from text_processing import preprocessing
 import pandas as pd
 import postgres as ps
@@ -12,8 +12,11 @@ import similarity_models as sm
 
 # Present on the website
 app = Flask(__name__)
+# create the table if is not existed
+ps.create_table('temp_bug_db',True)
+ps.create_table('bug_db')
 
-new_data_df = pd.DataFrame()
+data_df = pd.DataFrame()
 @app.route('/', methods=['POST', 'GET'])
 def home():
     if request.method == 'POST':
@@ -23,60 +26,60 @@ def home():
             return 'There was an issue adding your task'
     else:
         try:
-            show_df = new_data_df[["id", "summary"]]
+            show_df = data_df[["id", "summary"]]
             return render_template('main.html', tables=[show_df.to_html(classes='data')], titles=show_df.columns.values)
         except:
-            return render_template('main.html', tables=[new_data_df.to_html(classes='data')],titles=new_data_df.columns.values)
+            return render_template('main.html', tables=[data_df.to_html(classes='data')],titles=data_df.columns.values)
 
 @app.route('/refresh', methods=['GET', 'POST'])
 def refresh():
-    if request.method == 'POST':
+    if request.method == 'POST' or request.method == 'GET':
         try:
-            global new_data_df
+            global data_df
             # Extract data from Bugzilla website fot the past 2 hours
-            data_df = API_data_extract('1d')
-            # Preprocess the data_df
-            data_list = []
-            for tup in data_df.itertuples():
-                # search database if the bug report was new then do processing and save it in the database
-                processed_summary = preprocessing(data_df, tup.id, 'summary')
-                data_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time,
-                                  tup.status, tup.priority, tup.severity, tup.version, tup.summary, processed_summary])
-            new_data_df = pd.DataFrame(data_list,
-                                       columns=["id", "type", "product", "component", "creation_time", "status",
-                                                "priority", "severity", "version", "summary", "processed_summary"])
-            new_data_df = new_data_df.sort_values(by='id', ascending=False).reset_index()
-            # find the similar bug report
-
+            data_df = API_data_extract('1h')
+            data_df = data_df.sort_values(by='id', ascending=False).reset_index()
             return redirect('/')
         except:
             return 'There was an issue adding your task'
 
 @app.route('/save_db', methods=['GET', 'POST'])
-def insert_db():
+def save_db(db_name = 'temp_bug_db'):
     try:
-        # create the table if is not existed
-        ps.create_table()
-        # Save into a SQL database
+        # Preprocess the data_df
+        data_list = []
+        global data_df
+        temp_df = data_df.sort_values(by='id', ascending=True).reset_index()
+        for tup in temp_df.itertuples():
+            # search database if the bug report was new then do processing and save it in the database
+            processed_summary = preprocessing(data_df, tup.id, 'summary')
+            data_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time,
+                              tup.status, tup.priority, tup.severity, tup.version, tup.summary, processed_summary])
+        new_data_df = pd.DataFrame(data_list, columns=["id", "type", "product", "component", "creation_time", "status",
+                                                       "priority", "severity", "version", "summary","processed_summary"])
+        # Save into a temp_bug_db database
         for tup in new_data_df.itertuples():
-            ps.insert(tup.id,tup.type,tup.product,tup.component,tup.creation_time,tup.status,
+            ps.insert(db_name,tup.id,tup.type,tup.product,tup.component,tup.creation_time,tup.status,
                       tup.priority,tup.severity,tup.version,tup.summary,tup.processed_summary)
+        # Update the bug_db database
+        ps.update_db()
+        # ps.delete(db_name)
         return redirect('/')
     except:
         return 'There was an issue adding your task'
 
-@app.route('/find_id',methods=['GET', 'POST'])
-def find_id():
+@app.route('/find_similar',methods=['GET', 'POST'])
+def find_similar(db_name = 'bug_db'):
     if request.method == 'POST':
         task_id = request.form['id']
         # try:
         if task_id != '':
-            df = ps.extract(task_id)
+            df = ps.extract(db_name, task_id)
+            # df = API_id_extract(task_id)
         # find the similar bug report
             if not df.empty:
                 n_top(df)
-                return render_template('main.html', tables=[result.to_html(classes='data')],
-                                       titles=result.columns.values)
+                return render_template('main.html', tables=[result.to_html(classes='data')],titles=result.columns.values)
             else:
                 return redirect('/')
         else:
@@ -84,28 +87,20 @@ def find_id():
         # except:
         #     return 'There was an issue calculating the similarity'
     else:
-        return render_template('main.html', tables=[new_data_df.to_html(classes='data')],titles=new_data_df.columns.values)
+        return render_template('main.html', tables=[data_df.to_html(classes='data')],titles=data_df.columns.values)
 
 # Find the n-top similar bug report
-trigger = 0
 def n_top(df):
-    global trigger
-    if trigger == 0:
-        global original_data
-        original_data = ps.view()
-        trigger = 1
+    original_data = ps.view('bug_db')
     similarity_list = sm.n_top_finder(df,10,original_data)
     word2vec_df = similarity_list[0][1]
     tfidf = similarity_list[0][2]
     bm25f = similarity_list[0][3]
     global result
-    print(word2vec_df)
-    print(tfidf)
     result = pd.merge(word2vec_df,tfidf, on='id',how='outer')
     result = pd.merge(result,bm25f, on='id',how='outer')
     id_summary_df = original_data[['id','summary']]
     result = pd.merge(result,id_summary_df, on='id',how='left')
-
 
 if __name__ == "__main__":
     app.run(debug=True)
