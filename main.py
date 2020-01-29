@@ -29,10 +29,10 @@ def home():
         try:
             return redirect('/')
         except:
-            return 'There was an issue adding your task'
+            return 'There was an issue with home page'
     else:
         try:
-            show_df = data_df[["id", "summary"]]
+            show_df = data_df[["id", "creation_time", "summary","duplicates"]]
             return render_template('main.html', tables=[show_df.to_html(classes='data')], titles=show_df.columns.values)
         except:
             return render_template('main.html', tables=[data_df.to_html(classes='data')],titles=data_df.columns.values)
@@ -42,12 +42,12 @@ def refresh():
     if request.method == 'POST' or request.method == 'GET':
         try:
             global data_df
-            # Extract data from Bugzilla website fot the past 2 hours
+            # Extract data from Bugzilla website fot the past n hours (xh), days (xd), month (xm), year (xy)
             data_df = API_data_extract('10d')
             data_df = data_df.sort_values(by='id', ascending=False).reset_index()
             return redirect('/')
         except:
-            return 'There was an issue adding your task'
+            return 'There was an issue refreshing the page'
 
 @app.route('/save_db', methods=['GET', 'POST'])
 def save_db(db_name = 'temp_bug_db'):
@@ -60,18 +60,18 @@ def save_db(db_name = 'temp_bug_db'):
             # search database if the bug report was new then do processing and save it in the database
             processed_summary = preprocessing(data_df, tup.id, 'summary')
             data_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time,
-                              tup.status, tup.priority, tup.severity, tup.version, tup.summary, processed_summary])
+                              tup.status, tup.priority, tup.severity, tup.version, tup.summary, processed_summary,tup.duplicates])
         new_data_df = pd.DataFrame(data_list, columns=["id", "type", "product", "component", "creation_time", "status",
-                                                       "priority", "severity", "version", "summary","processed_summary"])
+                                                       "priority", "severity", "version", "summary","processed_summary","duplicates"])
         # Save into a temp_bug_db database
         for tup in new_data_df.itertuples():
             ps.insert(db_name,tup.id,tup.type,tup.product,tup.component,tup.creation_time,tup.status,
-                      tup.priority,tup.severity,tup.version,tup.summary,tup.processed_summary)
+                      tup.priority,tup.severity,tup.version,tup.summary,tup.processed_summary,tup.duplicates)
         # Update the bug_db database
         ps.update_db()
         return redirect('/')
     except:
-        return 'There was an issue adding your task'
+        return 'There was an issue adding your records to data base'
 
 @app.route('/find_similar',methods=['GET', 'POST'])
 def find_similar(db_name = 'bug_db'):
@@ -97,6 +97,15 @@ def find_similar(db_name = 'bug_db'):
 
 # Find the n-top similar bug report
 def n_top(df):
+    """
+        -------------------------------------------------------
+        Extract the n-top most similar reports
+        Use: n_top(df)
+        -------------------------------------------------------
+        Returns:
+            A data frame to present in the web
+        -------------------------------------------------------
+    """
     original_data = ps.view('bug_db')
     similarity_list = sm.n_top_finder(df,10,original_data)
     word2vec_df = similarity_list[0][1]
@@ -105,7 +114,7 @@ def n_top(df):
     global result
     result = pd.merge(word2vec_df,tfidf, on='id',how='outer')
     result = pd.merge(result,bm25f, on='id',how='outer')
-    id_summary_df = original_data[['id','summary']]
+    id_summary_df = original_data[['id','summary','creation_time', "duplicates"]]
     result = pd.merge(result,id_summary_df, on='id',how='left')
 
 if __name__ == "__main__":

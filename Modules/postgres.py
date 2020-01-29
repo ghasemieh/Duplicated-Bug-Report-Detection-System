@@ -28,12 +28,12 @@ def create_table(table_name,remove_current_table = False):
     if remove_current_table == True:
         command = "DROP TABLE IF EXISTS " + table_name
         cursor.execute(command)
-    command = "CREATE TABLE IF NOT EXISTS " + table_name + " (id INTEGER PRIMARY KEY,type TEXT, product TEXT,component TEXT,creation_time TEXT, status TEXT, priority TEXT, severity TEXT,version TEXT,summary TEXT,processed_summary TEXT)"
+    command = "CREATE TABLE IF NOT EXISTS " + table_name + " (id INTEGER PRIMARY KEY,type TEXT, product TEXT,component TEXT,creation_time TEXT, status TEXT, priority TEXT, severity TEXT,version TEXT,summary TEXT,processed_summary TEXT, duplicates TEXT)"
     cursor.execute(command)
     connection.commit()
     connection.close()
 
-def insert(table_name, id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary):
+def insert(table_name, id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary,duplicates):
     """
         -------------------------------------------------------
         Insert a tuple in the given table if it is not exist.
@@ -45,8 +45,8 @@ def insert(table_name, id,type,product,component,creation_time,status,priority,s
     """
     connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
     cursor = connection.cursor()
-    command = "INSERT INTO " + table_name + " VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (id) DO NOTHING;"
-    cursor.execute(command,(id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary))
+    command = "INSERT INTO " + table_name + " VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (id) DO NOTHING;"
+    cursor.execute(command,(id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary,duplicates))
     connection.commit()
     connection.close()
 
@@ -67,7 +67,7 @@ def view(table_name):
     rows = cursor.fetchall()
     connection.close()
     df = pd.DataFrame(rows, columns=["id", "type", "product", "component", "creation_time", "status",
-                                         "priority", "severity", "version", "summary", "processed_summary"])
+                                         "priority", "severity", "version", "summary", "processed_summary","duplicates"])
     return df
 
 def delete(table_name):
@@ -106,10 +106,26 @@ def extract(table_name, id):
     if len(rows) != 0 :
         ls = list([rows[0]])
         df = pd.DataFrame(ls, columns=["id", "type", "product", "component", "creation_time", "status",
-                                   "priority", "severity", "version", "summary", "processed_summary"])
+                                   "priority", "severity", "version", "summary", "processed_summary","duplicates"])
         return df
     else:
         ls = list(rows)
         df = pd.DataFrame(ls, columns=["id", "type", "product", "component", "creation_time", "status",
-                                       "priority", "severity", "version", "summary", "processed_summary"])
+                                       "priority", "severity", "version", "summary", "processed_summary","duplicates"])
         return df
+
+def update_db():
+    """
+        -------------------------------------------------------
+        Update the main database
+        Use: dupdate_db()
+        -------------------------------------------------------
+        Returns:
+            Nothing
+        -------------------------------------------------------
+    """
+    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO bug_db SELECT * FROM temp_bug_db ON CONFLICT (id) DO NOTHING")
+    connection.commit()
+    connection.close()
