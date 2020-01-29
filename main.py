@@ -3,12 +3,11 @@
 #  a.ghasemieh65@gmail.com
 #  https://github.com/ghasemieh
 
-from Bugzilla_API import API_data_extract, API_id_extract
-from text_processing import preprocessing
+from Modules.Bugzilla_API import API_data_extract
+from Modules.text_processing import preprocessing
 import pandas as pd
-import postgres as ps
+from Modules import postgres as ps, similarity_models as sm
 from flask import Flask, render_template, request, redirect
-import similarity_models as sm
 
 # Present on the website
 app = Flask(__name__)
@@ -37,7 +36,7 @@ def refresh():
         try:
             global data_df
             # Extract data from Bugzilla website fot the past 2 hours
-            data_df = API_data_extract('1h')
+            data_df = API_data_extract('10d')
             data_df = data_df.sort_values(by='id', ascending=False).reset_index()
             return redirect('/')
         except:
