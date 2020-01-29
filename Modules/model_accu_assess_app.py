@@ -1,7 +1,14 @@
-#  Copyright (c) 2020.
-#  Alireza Ghasemieh
-#  a.ghasemieh65@gmail.com
-#  https://github.com/ghasemieh
+"""
+-------------------------------------------------------
+Duplicated Bug Report Detection
+-------------------------------------------------------
+Copyright (c) 2020.
+Author: Alireza Ghasemieh
+Email: a.ghasemieh65@gmail.com
+https://github.com/ghasemieh
+__Updated__ = 1/29/20, 6:35 AM.
+-------------------------------------------------------
+"""
 # Assessment the Model Accuracy -------------------------------------------------------------------------------
 # Calculate the similarity score for the reported duplicated bug report
 import pandas as pd
@@ -27,6 +34,15 @@ processed_data_df = pd.read_csv('Data/processed_TestData2500_df.csv',sep=',')
 duplicate_df = pd.read_csv('Data/duplicate_df.csv', sep=',')
 
 def n_top_finder(new_bug_df, n_top,main_database):
+    """
+        -------------------------------------------------------
+        Extract the similarity score for a given dataframe and all records in the database one by one
+        Use: similarity_score_df = n_top_finder(new_bug_df, n_top,main_database)
+        -------------------------------------------------------
+        Returns:
+            A list of data frames which contain the n-top similarity scores
+        -------------------------------------------------------
+    """
     sample_size = len(new_bug_df)
     progress = pb.ProgressBar(maxval=sample_size).start()
     progvar = 0
@@ -53,6 +69,15 @@ with open("Data/duplicated_similarity_score_list_2500.txt", "rb") as fp:  # Unpi
 
 # Calculate the Recall rate
 def recall_rate_calculation(name_of_algorthem):
+    """
+        -------------------------------------------------------
+        Calculate the model accuracy using the recall parameter
+        Use: score = recall_rate_calculation(name_of_algorthem)
+        -------------------------------------------------------
+        Returns:
+            An integer representing the recall accuracy
+        -------------------------------------------------------
+    """
     if name_of_algorthem == 'word2vec':
         select_algorithm = 2
         print('word2vec result:')
@@ -84,6 +109,15 @@ recall_rate_calculation('bm25')
 
 # Calculate the MRR
 def MRR_rate_calculation(name_of_algorthem):
+    """
+        -------------------------------------------------------
+        Calculate the model accuracy using the MRR parameter
+        Use: score = MRR_rate_calculation(name_of_algorthem)
+        -------------------------------------------------------
+        Returns:
+            An integer representing the MRR accuracy
+        -------------------------------------------------------
+    """
     if name_of_algorthem == 'word2vec':
         select_algorithm = 2
         print('word2vec result:')
@@ -122,6 +156,15 @@ MRR_rate_calculation('bm25')
 
 # Calculate the MAP
 def MAP_rate_calculation(name_of_algorthem):
+    """
+        -------------------------------------------------------
+        Calculate the model accuracy using the MAP parameter
+        Use: score = MAP_rate_calculation(name_of_algorthem)
+        -------------------------------------------------------
+        Returns:
+            An integer representing the MAP accuracy
+        -------------------------------------------------------
+    """
     if name_of_algorthem == 'word2vec':
         select_algorithm = 2
         print('word2vec result:')

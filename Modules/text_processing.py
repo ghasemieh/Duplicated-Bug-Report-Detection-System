@@ -1,27 +1,30 @@
-#  Copyright (c) 2020.
-#  Alireza Ghasemieh
-#  a.ghasemieh65@gmail.com
-#  https://github.com/ghasemieh
+"""
+-------------------------------------------------------
+Duplicated Bug Report Detection
+-------------------------------------------------------
+Copyright (c) 2020.
+Author: Alireza Ghasemieh
+Email: a.ghasemieh65@gmail.com
+https://github.com/ghasemieh
+__Updated__ = 1/29/20, 6:35 AM.
+-------------------------------------------------------
+This module is responsible to preprocess the text inside a
+data frame and gives a data frame with the processed text
+It perform the following processes to the text:
 
-# Alireza Ghasemieh
-# a.ghasemieh65@gmail.com
-# 2019 - 2020
-# This module is responsible to preprocess the text inside a
-# data frame and gives a data frame with the processed text
-# It perform the following processes to the text:
+Convert to lowercase
+Split the words using 1. ASCII character identification for english 2. Split by Space  3. wordninja
+Apply normlise
+Apply contractions/expansions
+Remove punctuations
+remove tags.
+remove special characters and digits.
+Stemming/Lemmatisation.
 
-# Convert to lowercase
-# Split the words using 1. ASCII character identification for english 2. Split by Space  3. wordninja
-# Apply normlise
-# Apply contractions/expansions
-# Remove punctuations
-# remove tags.
-# remove special characters and digits.
-# Stemming/Lemmatisation.
-
-# The input is the df name and the textual attribute
-# name and the sample size from the df if you want to
-# conduct preprocess to a portion of the df
+The input is the df name and the textual attribute
+name and the sample size from the df if you want to
+conduct preprocess to a portion of the df
+"""
 # ---------------------------------------------------------------------------
 # The following is the dependency list of the module
 # conda install -c conda-forge spacy
@@ -51,6 +54,15 @@ import time
 import progressbar as pb
 
 def remove_nan(df):
+    """
+        -------------------------------------------------------
+        Remove NaN from dataframe
+        Use: remove_nan(df)
+        -------------------------------------------------------
+        Returns:
+            Nothing
+        -------------------------------------------------------
+    """
     print('Remove NA')
     blanks = []
     print("Before removing the NaN:")
@@ -64,6 +76,15 @@ def remove_nan(df):
     print("\nAfter removing the NaN:\n",df.isnull().sum())
 
 def remove_nan_processed(df):
+    """
+        -------------------------------------------------------
+        Remove NaN from the processed dataframe in case if during text processing a NaN created
+        Use: remove_nan_processed(df)
+        -------------------------------------------------------
+        Returns:
+            Nothing
+        -------------------------------------------------------
+    """
     print('Remove NA')
     blanks = []
     print("Before removing the NaN:")
@@ -77,6 +98,15 @@ def remove_nan_processed(df):
     print("\nAfter removing the NaN:\n",df.isnull().sum())
 
 def preprocessing(df, id, text_attribute_name):
+    """
+        -------------------------------------------------------
+        Do the preprocessing the text of the given data frame based on id and the attribute wants to be processed in the data frame
+        Use: processed_str = preprocessing(df, id, text_attribute_name)
+        -------------------------------------------------------
+        Returns:
+            string of processed text
+        -------------------------------------------------------
+    """
     # Extract and convert short_desc to string
     row = df[df['id'] == int(id)]  # Extract a tuple from the dataframe
     short_desc_to_string = row[text_attribute_name].to_string(index=False)  # Conver short_desc to string
@@ -124,6 +154,16 @@ def preprocessing(df, id, text_attribute_name):
     return result
 
 def text_preprocessing(df, text_attribute_name, sample_number=None):
+    """
+        -------------------------------------------------------
+        Do the preprocessing the text of the given data frame based on id and the attribute wants to be processed in the data frame
+        It is possible to limit the number of samples using sample_number attribute (default it processes all the dataframe)
+        Use: processed_str = text_preprocessing(df, text_attribute_name, sample_number=None)
+        -------------------------------------------------------
+        Returns:
+            Dataframe with the of processed text
+        -------------------------------------------------------
+    """
     start_time = time.time()
     print('Preprocessing the text')
     if sample_number is not None:

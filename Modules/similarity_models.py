@@ -1,7 +1,16 @@
-#  Copyright (c) 2020.
-#  Alireza Ghasemieh
-#  a.ghasemieh65@gmail.com
-#  https://github.com/ghasemieh
+"""
+-------------------------------------------------------
+Duplicated Bug Report Detection
+-------------------------------------------------------
+Copyright (c) 2020.
+Author: Alireza Ghasemieh
+Email: a.ghasemieh65@gmail.com
+https://github.com/ghasemieh
+__Updated__ = 1/29/20, 6:35 AM.
+-------------------------------------------------------
+
+This module id responsible for calculating the similarity score between two given text
+"""
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -16,6 +25,15 @@ processed_data_nlp_df = []
 
 # Convert summary str to nlp format to fasten the computation process
 def word2vec_preprocess(df):
+    """
+        -------------------------------------------------------
+        Tokenize the summary
+        Use: word2vec_preprocess(df)
+        -------------------------------------------------------
+        Returns:
+            Nothing - Create processed_data_nlp_df for the word2vec_similarity function
+        -------------------------------------------------------
+    """
     print('Convert summary str to nlp format')
     sample_size = len(df)
     progress = pb.ProgressBar(maxval=sample_size).start()
@@ -32,6 +50,15 @@ def word2vec_preprocess(df):
 
 # Calculate the cosine similarity score
 def word2vec_similarity(id, df):
+    """
+        -------------------------------------------------------
+        Calculate the similarity score between the given id tuple and the rest of the database
+        Use: similarity_score_df = word2vec_similarity(id, df)
+        -------------------------------------------------------
+        Returns:
+            A data frame of ids and similarity scores
+        -------------------------------------------------------
+    """
     if execution_count_word2vec == 0:
         word2vec_preprocess(df)
     similarities_score_list = []
@@ -54,6 +81,15 @@ tfidf_cosine_similarities = []
 execution_count_tfidf = 0
 
 def tfidf_preprocess(df):
+    """
+        -------------------------------------------------------
+        Calculate the similarity score between the given id tuple and the rest of the database
+        Use: tfidf_preprocess(df)
+        -------------------------------------------------------
+        Returns:
+            Nothing - Create tf-idf for the tfidf_similarities function
+        -------------------------------------------------------
+    """
     X_train = df['processed_summary']
     print('TF-idf Vectorization and similarity score computation')
     # Vectorization
@@ -69,6 +105,15 @@ def tfidf_preprocess(df):
     execution_count_tfidf += 1
 
 def tfidf_similarities(id, df):
+    """
+        -------------------------------------------------------
+        Calculate the similarity score between the given id tuple and the rest of the database
+        Use: similarity_score_df = tfidf_similarities(id, df)
+        -------------------------------------------------------
+        Returns:
+            A data frame of ids and similarity scores
+        -------------------------------------------------------
+    """
     if execution_count_tfidf == 0:
         tfidf_preprocess(df)
     index_main = df.loc[lambda df: df['id'] == id].index.array[0]
@@ -92,6 +137,15 @@ execution_count_bm25 = 0
 
 # preprocess - tokenize the summary to token
 def bm25_preprocess(df):
+    """
+        -------------------------------------------------------
+        Calculate the similarity score between the given id tuple and the rest of the database
+        Use: bm25_preprocess(df)
+        -------------------------------------------------------
+        Returns:
+            Nothing - Create tf-idf for the bm25_similarities function
+        -------------------------------------------------------
+    """
     print('preprocess - tokenize the summary to token')
     global processed_corpus_list
     processed_corpus_list = []
@@ -106,6 +160,15 @@ def bm25_preprocess(df):
 
 # Calculate the similarity score
 def bm25_similarity(id, df):
+    """
+        -------------------------------------------------------
+        Calculate the similarity score between the given id tuple and the rest of the database
+        Use: similarity_score_df = bm25_similarity(id, df)
+        -------------------------------------------------------
+        Returns:
+            A data frame of ids and similarity scores
+        -------------------------------------------------------
+    """
     if execution_count_bm25 == 0:
         bm25_preprocess(df)
     index_main = df.loc[lambda df: df['id'] == id].index.array[0]
@@ -128,6 +191,16 @@ def bm25_similarity(id, df):
 
 # Calculate the similarity scores and return the first n top scores  ------------------------------------------------
 def similarity_score(id, df, top_n):
+    """
+        -------------------------------------------------------
+        Calculate the word2vec, tfidf and BM25 similarity score between the given id tuple and the rest of the database
+        and get the n-top records of each methods
+        Use: similarity_score_df = similarity_score(id, df, top_n = 20)
+        -------------------------------------------------------
+        Returns:
+            A data frame of ids and similarity scores
+        -------------------------------------------------------
+    """
     word2vec_similarity_df = word2vec_similarity(id, df).sort_values(by=['word2vec_score'], ascending=False).head(top_n)
     tfidf_similarity_df = tfidf_similarities(id, df).sort_values(by=['tfidf_score'], ascending=False).head(top_n)
     bm25_similarity_df = bm25_similarity(id, df).sort_values(by=['bm25_score'], ascending=False).head(top_n)
@@ -135,6 +208,15 @@ def similarity_score(id, df, top_n):
 
 # Calculate the n-top similar bug report and return the list
 def n_top_finder(new_bug_df, n_top,main_database):
+    """
+        -------------------------------------------------------
+        Extract the similarity score for a given dataframe and all records in the database one by one
+        Use: similarity_score_df = n_top_finder(new_bug_df, n_top,main_database)
+        -------------------------------------------------------
+        Returns:
+            A list of data frames which contain the n-top similarity scores
+        -------------------------------------------------------
+    """
     sample_size = len(new_bug_df)
     progress = pb.ProgressBar(maxval=sample_size).start()
     progvar = 0

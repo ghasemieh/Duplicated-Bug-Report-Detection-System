@@ -1,7 +1,14 @@
-#  Copyright (c) 2020.
-#  Alireza Ghasemieh
-#  a.ghasemieh65@gmail.com
-#  https://github.com/ghasemieh
+"""
+-------------------------------------------------------
+Duplicated Bug Report Detection
+-------------------------------------------------------
+Copyright (c) 2020.
+Author: Alireza Ghasemieh
+Email: a.ghasemieh65@gmail.com
+https://github.com/ghasemieh
+__Updated__ = 1/29/20, 6:35 AM.
+-------------------------------------------------------
+"""
 
 from Modules.Bugzilla_API import API_data_extract
 from Modules.text_processing import preprocessing
