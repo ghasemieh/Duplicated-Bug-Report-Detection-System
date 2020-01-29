@@ -1,3 +1,8 @@
+#  Copyright (c) 2020.
+#  Alireza Ghasemieh
+#  a.ghasemieh65@gmail.com
+#  https://github.com/ghasemieh
+
 # Alireza Ghasemieh
 # a.ghasemieh65@gmail.com
 # 2019 - 2020

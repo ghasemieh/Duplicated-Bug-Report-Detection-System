@@ -1,3 +1,8 @@
+#  Copyright (c) 2020.
+#  Alireza Ghasemieh
+#  a.ghasemieh65@gmail.com
+#  https://github.com/ghasemieh
+
 # Extract new bug report return as dataframe
 import requests
 import pandas as pd

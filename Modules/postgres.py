@@ -2,7 +2,6 @@
 #  Alireza Ghasemieh
 #  a.ghasemieh65@gmail.com
 #  https://github.com/ghasemieh
-# This module is responsible for connecting to postgres SQL server and handle the functions
 
 import psycopg2
 import pandas as pd
