@@ -1,3 +1,0 @@
-user postgres
-pass password123
-port 5432
