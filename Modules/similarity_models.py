@@ -175,7 +175,8 @@ def bm25_similarity(id, df):
     product_main = df.loc[lambda df: df['id'] == id, 'product'].array[0]
     query = processed_corpus_list[index_main]
     doc_scores = bm25.get_scores(query)
-    doc_scores_df = pd.DataFrame(doc_scores, columns=['bm25_score'])
+    doc_scores_norm = [float(i)/max(doc_scores) for i in doc_scores]
+    doc_scores_df = pd.DataFrame(doc_scores_norm, columns=['bm25_score'])
     # add id to the score list and remove unsimiliar product
     blanks = []
     for x in doc_scores_df.itertuples():

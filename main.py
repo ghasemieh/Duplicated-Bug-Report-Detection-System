@@ -43,7 +43,7 @@ def refresh():
         try:
             global data_df
             # Extract data from Bugzilla website fot the past n hours (xh), days (xd), month (xm), year (xy)
-            data_df = API_data_extract('10d')
+            data_df = API_data_extract('1h')
             data_df = data_df.sort_values(by='id', ascending=False).reset_index()
             return redirect('/')
         except:
@@ -107,15 +107,19 @@ def n_top(df):
         -------------------------------------------------------
     """
     original_data = ps.view('bug_db')
-    similarity_list = sm.n_top_finder(df,10,original_data)
+    similarity_list = sm.n_top_finder(df,20,original_data)
     word2vec_df = similarity_list[0][1]
-    tfidf = similarity_list[0][2]
-    bm25f = similarity_list[0][3]
+    tfidf_df = similarity_list[0][2]
+    bm25f_df = similarity_list[0][3]
+
     global result
-    result = pd.merge(word2vec_df,tfidf, on='id',how='outer')
-    result = pd.merge(result,bm25f, on='id',how='outer')
+    result = pd.merge(word2vec_df,tfidf_df, on='id',how='outer')
+    result = pd.merge(result,bm25f_df, on='id',how='outer')
     id_summary_df = original_data[['id','summary','creation_time', "duplicates"]]
     result = pd.merge(result,id_summary_df, on='id',how='left')
+    result = result.fillna(0)
+    result["total_score"] = result["word2vec_score"] + result["tfidf_score"] + result["bm25_score"]
+    result = result.sort_values(['total_score', 'creation_time'], ascending=[False, True]).head(20)
 
 if __name__ == "__main__":
     app.run(debug=True)
