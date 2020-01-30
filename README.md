@@ -19,3 +19,5 @@ Data is available from https://wiki.mozilla.org/Bugzilla:REST_API is source to t
 
 ### Visualization
 Web-based framework to show the top most similar/duplicate bugs.
+
+## I will complete this article once the project got lunched.
