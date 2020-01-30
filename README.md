@@ -3,7 +3,7 @@
 ## Background
 As software programs become increasingly large and complex, it is important to improve the quality of software maintenance. Bug report recommendations can significantly improve the triaging of bug reports. It is difficult to inspect the new incoming reports manually to route to the developers who have fixed the duplicate bugs. Automatic identification of Duplicate bug reports is a critical research problem in the software repositories’ mining area.
 
-![Image of Bug](/images/BR1.png)
+![Image of Bug](/BR1.png)
 
 ## Aim
 The aim of this project is to propose an effective unsupervised model for duplicate bug recommendations.
