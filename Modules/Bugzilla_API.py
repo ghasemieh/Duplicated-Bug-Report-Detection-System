@@ -31,7 +31,7 @@ def API_data_extract(from_a_preiod_of_time_untill_now='2h'):
     controller = 'https://bugzilla.mozilla.org/rest/bug?include_fields=id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary,duplicates&chfield=%5BBug%20creation%5D&chfieldfrom=-'
     get_bug_url = controller + from_a_preiod_of_time_untill_now + '&chfieldto=Now'
     try:
-        # Extract data from Bugzilla
+        # Extract data from Bugzilla REST API
         response = requests.get(get_bug_url)
         response_json = response.json()
         data = response_json["bugs"]
