@@ -16,6 +16,42 @@ import requests
 import datetime
 import pytz
 
+def API_data_extract_2(from_id_number_till_now):
+    controller = 'https://bugzilla.mozilla.org/rest/bug?include_fields=id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary,duplicates&f1=bug_id&o1=greaterthan&v1='
+    get_bug_url = controller + from_id_number_till_now
+    try:
+        # Extract data from Bugzilla REST API
+        response = requests.get(get_bug_url)
+        response_json = response.json()
+        data = response_json["bugs"]
+        print("Number of bug reports:", len(data))
+        if len(data) > 0:
+            # Initiate mongoDB
+            client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+            mydb = client["mydatabase"]
+            mycol = mydb["bug_report"]
+            mycol.create_index([('id', pymongo.ASCENDING)], unique=True)
+
+            for tup in data:
+                # convert the date and time
+                time_convert = datetime.datetime.strptime(tup['creation_time'], "%Y-%m-%dT%H:%M:%SZ")
+                tup["creation_time"] = time_convert
+                # add insertion time to the record
+                tz_London = pytz.timezone('Europe/London')
+                tup['insertion_time'] = datetime.datetime.now(tz_London)
+                # Insert record to mongoDB
+                try:
+                    mycol.insert_one(tup)
+                except:
+                    None
+            data = pd.DataFrame(data)
+            data.drop(columns=['_id'], inplace=True)
+        else:
+            data = pd.DataFrame(data)
+        return data
+    except:
+        print("API Error")
+
 
 def API_data_extract(from_a_preiod_of_time_untill_now='2h'):
     """

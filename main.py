@@ -10,7 +10,7 @@ __Updated__ = 1/29/20, 6:35 AM.
 -------------------------------------------------------
 """
 
-from Modules.Bugzilla_API import API_data_extract
+from Modules.Bugzilla_API import API_data_extract_2
 from Modules.text_processing import preprocessing
 import pandas as pd
 from Modules import postgres as ps, similarity_models as sm
@@ -19,8 +19,10 @@ from flask import Flask, render_template, request, redirect
 # Present on the website
 app = Flask(__name__)
 # create the table if is not existed
-ps.create_table('temp_bug_db',True)
-ps.create_table('bug_db')
+ps.create_table()
+# Set bug id pointer
+with open('current_bug_id.txt', 'r') as f:
+    current_bug_id = f.read()
 
 data_df = pd.DataFrame()
 @app.route('/', methods=['POST', 'GET'])
@@ -42,45 +44,46 @@ def refresh():
     if request.method == 'POST' or request.method == 'GET':
         try:
             global data_df
-            # Extract data from Bugzilla website fot the past n hours (xh), days (xd), month (xm), year (xy)
-            data_df = API_data_extract('1h')
-            data_df = data_df.sort_values(by='id', ascending=False).reset_index()
+            global current_bug_id
+            current_bug_id_str = str(current_bug_id)
+            new_data_df = API_data_extract_2(current_bug_id_str)
+            if len(new_data_df) > 0:
+                frame = [new_data_df, data_df]
+                data_df = pd.concat(frame)
+                data_df = data_df.sort_values(by='id', ascending=False).reset_index().head(50)
+                current_bug_id = new_data_df['id'].max()
+                # Update the bug id pointer
+                with open('current_bug_id.txt', 'w') as f:
+                    f.write('%d' % current_bug_id)
+                # -----------------------------------------------------
+                try:
+                    # Preprocess the new_data_df
+                    data_list = []
+                    temp_df = new_data_df.sort_values(by='id', ascending=True).reset_index()
+                    for tup in temp_df.itertuples():
+                        processed_summary = preprocessing(new_data_df, tup.id, 'summary')
+                        data_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time,tup.status,
+                                      tup.priority, tup.severity, tup.version, tup.summary,processed_summary, tup.duplicates])
+                    processed_data_df = pd.DataFrame(data_list,columns=["id", "type", "product", "component", "creation_time","status",
+                                                        "priority", "severity", "version", "summary","processed_summary", "duplicates"])
+                    # Save into a bug_db SQL database
+                    for tup in processed_data_df.itertuples():
+                        ps.insert(tup.id, tup.type, tup.product, tup.component, tup.creation_time, tup.status,
+                              tup.priority, tup.severity, tup.version, tup.summary, tup.processed_summary, tup.duplicates)
+                    return redirect('/')
+                except:
+                    return 'There was an issue adding your records to SQL database'
             return redirect('/')
         except:
             return 'There was an issue refreshing the page'
 
-@app.route('/save_db', methods=['GET', 'POST'])
-def save_db(db_name = 'temp_bug_db'):
-    try:
-        # Preprocess the data_df
-        data_list = []
-        global data_df
-        temp_df = data_df.sort_values(by='id', ascending=True).reset_index()
-        for tup in temp_df.itertuples():
-            # search database if the bug report was new then do processing and save it in the database
-            processed_summary = preprocessing(data_df, tup.id, 'summary')
-            data_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time,
-                              tup.status, tup.priority, tup.severity, tup.version, tup.summary, processed_summary,tup.duplicates])
-        new_data_df = pd.DataFrame(data_list, columns=["id", "type", "product", "component", "creation_time", "status",
-                                                       "priority", "severity", "version", "summary","processed_summary","duplicates"])
-        # Save into a temp_bug_db database
-        for tup in new_data_df.itertuples():
-            ps.insert(db_name,tup.id,tup.type,tup.product,tup.component,tup.creation_time,tup.status,
-                      tup.priority,tup.severity,tup.version,tup.summary,tup.processed_summary,tup.duplicates)
-        # Update the bug_db database
-        ps.update_db()
-        return redirect('/')
-    except:
-        return 'There was an issue adding your records to data base'
-
 @app.route('/find_similar',methods=['GET', 'POST'])
-def find_similar(db_name = 'bug_db'):
+def find_similar():
     if request.method == 'POST':
-        ps.update_db()
         task_id = request.form['id']
         try:
             if task_id != '':
-                df = ps.extract(db_name, task_id)
+                df = ps.extract(task_id)
                 # df = API_id_extract(task_id)
                 # find the similar bug report
                 if not df.empty:
@@ -106,7 +109,7 @@ def n_top(df):
             A data frame to present in the web
         -------------------------------------------------------
     """
-    original_data = ps.view('bug_db')
+    original_data = ps.view()
     similarity_list = sm.n_top_finder(df,20,original_data)
     word2vec_df = similarity_list[0][1]
     tfidf_df = similarity_list[0][2]
