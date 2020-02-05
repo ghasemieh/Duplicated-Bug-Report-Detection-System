@@ -9,7 +9,7 @@ https://github.com/ghasemieh
 __Updated__ = 1/29/20, 6:35 AM.
 -------------------------------------------------------
 """
-
+import pymongo
 from Modules.Bugzilla_API import API_data_extract_2
 from Modules.text_processing import preprocessing
 import pandas as pd
@@ -24,7 +24,15 @@ ps.create_table()
 with open('current_bug_id.txt', 'r') as f:
     current_bug_id = f.read()
 
-data_df = pd.DataFrame()
+# Read the last 20 bug report from mongodb and put in data_df
+client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+mydb = client["mydatabase"]
+mycol = mydb["bug_report"]
+db_read_pointer = int(current_bug_id) - 20
+last_n_bug_report = mycol.find({"id": {"$gt": db_read_pointer}})
+data_df = pd.DataFrame(list(last_n_bug_report))
+data_df = data_df.sort_values(by='id', ascending=False).reset_index()
+
 @app.route('/', methods=['POST', 'GET'])
 def home():
     if request.method == 'POST':

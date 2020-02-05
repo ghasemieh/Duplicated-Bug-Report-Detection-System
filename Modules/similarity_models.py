@@ -16,6 +16,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import pandas as pd
 import progressbar as pb
+import time
 
 # Model-1: Similarity Score - Word2vec -------------------------------------------------------------------------
 import spacy
@@ -34,7 +35,8 @@ def word2vec_preprocess(df):
             Nothing - Create processed_data_nlp_df for the word2vec_similarity function
         -------------------------------------------------------
     """
-    print('Convert summary str to nlp format')
+    print('Word2Vec Preprocessing - Convert Summary to NLP Format')
+    start_time = time.time()
     sample_size = len(df)
     progress = pb.ProgressBar(maxval=sample_size).start()
     progvar = 0
@@ -47,6 +49,7 @@ def word2vec_preprocess(df):
     processed_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'processed_summary'])
     global execution_count_word2vec
     execution_count_word2vec += 1
+    print("Word2Vec Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
 
 # Calculate the cosine similarity score
 def word2vec_similarity(id, df):
@@ -61,6 +64,8 @@ def word2vec_similarity(id, df):
     """
     if execution_count_word2vec == 0:
         word2vec_preprocess(df)
+    print("Word2Vec Score Calculation")
+    start_time = time.time()
     similarities_score_list = []
     product_main = processed_data_nlp_df.loc[lambda df: df['id'] == id, 'product'].array[0]
     processed_summary_main = processed_data_nlp_df.loc[lambda df: df['id'] == id, 'processed_summary'].array[0]
@@ -72,6 +77,7 @@ def word2vec_similarity(id, df):
     # convert to dataframe
     word2vec_similarities_score_df = pd.DataFrame(similarities_score_list, columns=['id', 'word2vec_score'])
     word2vec_similarities_score_df = word2vec_similarities_score_df.reset_index(drop=True)
+    print("Word2Vec Done", "--- %s seconds ---\n" % (time.time() - start_time))
     return word2vec_similarities_score_df
 
 # Model-2: Similarity Score - TF-idf ----------------------------------------------------------------------------
@@ -90,8 +96,9 @@ def tfidf_preprocess(df):
             Nothing - Create tf-idf for the tfidf_similarities function
         -------------------------------------------------------
     """
+    print('TF-IDF Preprocessing - Vectorization and Similarity Score Calculation')
+    start_time = time.time()
     X_train = df['processed_summary']
-    print('TF-idf Vectorization and similarity score computation')
     # Vectorization
     vectorizer = TfidfVectorizer()
     tfidf = vectorizer.fit_transform(X_train)
@@ -100,9 +107,9 @@ def tfidf_preprocess(df):
     tfidf_cosine_similarities = linear_kernel(tfidf)
     global shape_tfidf
     shape_tfidf = tfidf_cosine_similarities.shape[0]
-    print('TF-idf preprocess done')
     global execution_count_tfidf
     execution_count_tfidf += 1
+    print("TF-IDF Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
 
 def tfidf_similarities(id, df):
     """
@@ -116,6 +123,8 @@ def tfidf_similarities(id, df):
     """
     if execution_count_tfidf == 0:
         tfidf_preprocess(df)
+    print("TF-IDF Score Calculation")
+    start_time = time.time()
     index_main = df.loc[lambda df: df['id'] == id].index.array[0]
     product_main = df.loc[lambda df: df['id'] == id, 'product'].array[0]
     tfidf_cosine_similarities_list = []
@@ -127,6 +136,7 @@ def tfidf_similarities(id, df):
     # Conver to dataframe
     tfidf_cosine_similarities_score_df = pd.DataFrame(tfidf_cosine_similarities_list, columns=['id', 'tfidf_score'])
     tfidf_cosine_similarities_score_df = tfidf_cosine_similarities_score_df.reset_index(drop=True)
+    print("TF-IDF Done", "--- %s seconds ---\n" % (time.time() - start_time))
     return tfidf_cosine_similarities_score_df
 
 # Model-3: Similarity Score - BM25F -----------------------------------------------------------------------------
@@ -146,7 +156,8 @@ def bm25_preprocess(df):
             Nothing - Create tf-idf for the bm25_similarities function
         -------------------------------------------------------
     """
-    print('preprocess - tokenize the summary to token')
+    print('BM25 Preprocess - Tokenize the Summary')
+    start_time = time.time()
     global processed_corpus_list
     processed_corpus_list = []
     for x in df.itertuples():
@@ -157,6 +168,7 @@ def bm25_preprocess(df):
     bm25 = BM25Okapi(processed_corpus_list)
     global execution_count_bm25
     execution_count_bm25 += 1
+    print("BM25 Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
 
 # Calculate the similarity score
 def bm25_similarity(id, df):
@@ -171,6 +183,8 @@ def bm25_similarity(id, df):
     """
     if execution_count_bm25 == 0:
         bm25_preprocess(df)
+    print("BM25 Score Calculation")
+    start_time = time.time()
     index_main = df.loc[lambda df: df['id'] == id].index.array[0]
     product_main = df.loc[lambda df: df['id'] == id, 'product'].array[0]
     query = processed_corpus_list[index_main]
@@ -188,6 +202,7 @@ def bm25_similarity(id, df):
             blanks.append(x.Index)
     doc_scores_df.drop(blanks, inplace=True)
     doc_scores_df = doc_scores_df.reset_index(drop=True)
+    print("BM25 Done", "--- %s seconds ---\n" % (time.time() - start_time))
     return doc_scores_df
 
 # Calculate the similarity scores and return the first n top scores  ------------------------------------------------
