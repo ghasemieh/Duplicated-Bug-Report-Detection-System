@@ -17,11 +17,10 @@ warnings.filterwarnings('ignore')
 import pandas as pd
 from Modules import postgres as ps
 import time
-import cPickle
+import _pickle as cPickle
 # Model-1: Similarity Score - Word2vec -------------------------------------------------------------------------
 import spacy
 nlp = spacy.load('en_core_web_lg')
-execution_count_word2vec = 0
 processed_data_nlp_df = []
 
 # Convert summary str to nlp format to fasten the computation process
@@ -42,15 +41,31 @@ def word2vec_preprocess(df):
         processed_data_nlp.append((tup.id, tup.product, nlp(tup.processed_summary)))
     global processed_data_nlp_df
     processed_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'processed_summary'])
-    global execution_count_word2vec
-    execution_count_word2vec += 1
-    print("Word2Vec Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
-    global max_id
+
+    # bytes = cPickle.dumps(processed_data_nlp_df_1, 1)
+    # ouf = open('datafile.txt', 'w')
+    # cPickle.dump(bytes, ouf)
+    # ouf.close()
+
+    # processed_data_nlp_df = cPickle.loads(bytes)
+
+    execution_flag_word2vec = 1
+    with open('execution_flag_word2vec.txt', 'w') as f:
+        f.write('%d' % execution_flag_word2vec)
+
     max_id = df['id'].max()
+    with open('max_id.txt', 'w') as f:
+        f.write('%d' % max_id)
+
+    print("Word2Vec Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
 
 def word2vec_preprocess_update(df):
     print("Word2Vec Preprocessing Update - Convert Summary to NLP Format")
     start_time = time.time()
+
+    with open('max_id.txt', 'r') as f:
+        max_id = int(f.read())
+
     processed_data_nlp = []
     for id in range(max_id+1,df['id'].max()+1):
         tup = pd.DataFrame(ps.extract(str(id)))
@@ -59,6 +74,11 @@ def word2vec_preprocess_update(df):
     processed_new_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'processed_summary'])
     global processed_data_nlp_df
     processed_data_nlp_df = pd.concat([processed_new_data_nlp_df, processed_data_nlp_df], ignore_index= True)
+
+    max_id = df['id'].max()
+    with open('max_id.txt', 'w') as f:
+        f.write('%d' % max_id)
+
     print("Word2Vec Preprocessing Update Done", "--- %s seconds ---\n" % (time.time() - start_time))
 
 # Calculate the cosine similarity score
@@ -72,10 +92,22 @@ def word2vec_similarity(id, df):
             A data frame of ids and similarity scores
         -------------------------------------------------------
     """
-    if execution_count_word2vec == 0:
+    try:
+        with open('execution_flag_word2vec.txt', 'r') as f:
+            execution_flag_word2vec = int(f.read())
+    except:
+        execution_flag_word2vec = 0
+    try:
+        with open('max_id.txt', 'r') as f:
+            max_id = int(f.read())
+    except:
+        max_id = 0
+
+    if execution_flag_word2vec == 0:
         word2vec_preprocess(df)
     elif df['id'].max() > max_id:
         word2vec_preprocess_update(df)
+
     print("Word2Vec Score Calculation")
     start_time = time.time()
     similarities_score_list = []
