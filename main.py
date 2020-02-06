@@ -15,6 +15,7 @@ from Modules.text_processing import preprocessing
 import pandas as pd
 from Modules import postgres as ps, similarity_models as sm
 from flask import Flask, render_template, request, redirect
+import time
 
 app = Flask(__name__)  # Present on the website
 ps.create_table()  # create the table if is not existed
@@ -113,6 +114,7 @@ def n_top(df):
             A data frame to present in the web
         -------------------------------------------------------
     """
+    start_time = time.time()
     original_data = ps.view()
     similarity_list = sm.n_top_finder(df, 20, original_data)
     word2vec_df = similarity_list[0][1]
@@ -127,7 +129,7 @@ def n_top(df):
     result = result.fillna(0)
     result["total_score"] = result["word2vec_score"] + result["tfidf_score"] + result["bm25_score"]
     result = result.sort_values(['total_score', 'creation_time'], ascending=[False, True]).head(20)
-
+    print("Calculation Done", "--- %s seconds ---\n" % (time.time() - start_time))
 
 if __name__ == "__main__":
     app.run(debug=True)
