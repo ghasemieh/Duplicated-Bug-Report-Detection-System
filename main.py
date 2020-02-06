@@ -16,22 +16,11 @@ import pandas as pd
 from Modules import postgres as ps, similarity_models as sm
 from flask import Flask, render_template, request, redirect
 
-# Present on the website
-app = Flask(__name__)
-# create the table if is not existed
-ps.create_table()
-# Set bug id pointer
+app = Flask(__name__)  # Present on the website
+ps.create_table()  # create the table if is not existed
 with open('current_bug_id.txt', 'r') as f:
-    current_bug_id = f.read()
+    current_bug_id = f.read()  # Set bug id pointer
 
-# Read the last 20 bug report from mongodb and put in data_df
-client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
-mydb = client["mydatabase"]
-mycol = mydb["bug_report"]
-db_read_pointer = int(current_bug_id) - 20
-last_n_bug_report = mycol.find({"id": {"$gt": db_read_pointer}})
-data_df = pd.DataFrame(list(last_n_bug_report))
-data_df = data_df.sort_values(by='id', ascending=False).reset_index()
 
 @app.route('/', methods=['POST', 'GET'])
 def home():
@@ -42,42 +31,47 @@ def home():
             return 'There was an issue with home page'
     else:
         try:
-            show_df = data_df[["id", "creation_time", "summary","duplicates"]]
+            # Read the last 20 bug report from mongodb and put in data_df
+            client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+            mydb = client["mydatabase"]
+            mycol = mydb["bug_report"]
+            db_read_pointer = int(current_bug_id) - 20
+            last_n_bug_report = mycol.find({"id": {"$gt": db_read_pointer}})
+            global data_df
+            data_df = pd.DataFrame(list(last_n_bug_report))
+            data_df = data_df.sort_values(by='id', ascending=False).reset_index()
+            show_df = data_df[["id", "creation_time", "summary", "duplicates"]]
             return render_template('main.html', tables=[show_df.to_html(classes='data')], titles=show_df.columns.values)
         except:
-            return render_template('main.html', tables=[data_df.to_html(classes='data')],titles=data_df.columns.values)
+            return render_template('main.html', tables=[data_df.to_html(classes='data')], titles=data_df.columns.values)
+
 
 @app.route('/refresh', methods=['GET', 'POST'])
 def refresh():
     if request.method == 'POST' or request.method == 'GET':
         try:
-            global data_df
             global current_bug_id
             current_bug_id_str = str(current_bug_id)
-            new_data_df = API_data_extract_2(current_bug_id_str)
-            if len(new_data_df) > 0:
-                frame = [new_data_df, data_df]
-                data_df = pd.concat(frame)
-                data_df = data_df.sort_values(by='id', ascending=False).reset_index().head(50)
-                current_bug_id = new_data_df['id'].max()
+            new_bug_df = API_data_extract_2(current_bug_id_str)
+            if len(new_bug_df) > 0:
+                current_bug_id = new_bug_df['id'].max()
                 # Update the bug id pointer
                 with open('current_bug_id.txt', 'w') as f:
                     f.write('%d' % current_bug_id)
-                # -----------------------------------------------------
                 try:
-                    # Preprocess the new_data_df
-                    data_list = []
-                    temp_df = new_data_df.sort_values(by='id', ascending=True).reset_index()
-                    for tup in temp_df.itertuples():
-                        processed_summary = preprocessing(new_data_df, tup.id, 'summary')
-                        data_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time,tup.status,
-                                      tup.priority, tup.severity, tup.version, tup.summary,processed_summary, tup.duplicates])
-                    processed_data_df = pd.DataFrame(data_list,columns=["id", "type", "product", "component", "creation_time","status",
-                                                        "priority", "severity", "version", "summary","processed_summary", "duplicates"])
+                    # Preprocess the new_bug_df
+                    bug_list = []
+                    new_bug_df = new_bug_df.sort_values(by='id', ascending=True).reset_index()
+                    for tup in new_bug_df.itertuples():
+                        processed_summary = preprocessing(new_bug_df, tup.id, 'summary')
+                        bug_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time, tup.status,
+                                         tup.priority, tup.severity, tup.version, tup.summary, processed_summary,tup.duplicates])
+                    processed_data_df = pd.DataFrame(bug_list,columns=["id","type","product","component","creation_time","status","priority"
+                                                             ,"severity","version","summary","processed_summary","duplicates"])
                     # Save into a bug_db SQL database
                     for tup in processed_data_df.itertuples():
                         ps.insert(tup.id, tup.type, tup.product, tup.component, tup.creation_time, tup.status,
-                              tup.priority, tup.severity, tup.version, tup.summary, tup.processed_summary, tup.duplicates)
+                                  tup.priority, tup.severity, tup.version, tup.summary, tup.processed_summary,tup.duplicates)
                     return redirect('/')
                 except:
                     return 'There was an issue adding your records to SQL database'
@@ -85,26 +79,28 @@ def refresh():
         except:
             return 'There was an issue refreshing the page'
 
-@app.route('/find_similar',methods=['GET', 'POST'])
+
+@app.route('/find_similar', methods=['GET', 'POST'])
 def find_similar():
     if request.method == 'POST':
         task_id = request.form['id']
-        try:
-            if task_id != '':
-                df = ps.extract(task_id)
+        # try:
+        if task_id != '':
+            df = ps.extract(task_id)
                 # df = API_id_extract(task_id)
                 # find the similar bug report
-                if not df.empty:
-                    n_top(df)
-                    return render_template('main.html', tables=[result.to_html(classes='data')],titles=result.columns.values)
-                else:
-                    return redirect('/')
+            if not df.empty:
+                n_top(df)
+                return render_template('main.html', tables=[result.to_html(classes='data')],titles=result.columns.values)
             else:
-                return 'There was no entry'
-        except:
-            return 'There id is not in the database'
+                return redirect('/')
+        else:
+            return 'There was no entry'
+        # except:
+        #     return 'There id is not in the database'
     else:
-        return render_template('main.html', tables=[data_df.to_html(classes='data')],titles=data_df.columns.values)
+        return render_template('main.html', tables=[data_df.to_html(classes='data')], titles=data_df.columns.values)
+
 
 # Find the n-top similar bug report
 def n_top(df):
@@ -118,19 +114,20 @@ def n_top(df):
         -------------------------------------------------------
     """
     original_data = ps.view()
-    similarity_list = sm.n_top_finder(df,20,original_data)
+    similarity_list = sm.n_top_finder(df, 20, original_data)
     word2vec_df = similarity_list[0][1]
     tfidf_df = similarity_list[0][2]
     bm25f_df = similarity_list[0][3]
 
     global result
-    result = pd.merge(word2vec_df,tfidf_df, on='id',how='outer')
-    result = pd.merge(result,bm25f_df, on='id',how='outer')
-    id_summary_df = original_data[['id','summary','creation_time', "duplicates"]]
-    result = pd.merge(result,id_summary_df, on='id',how='left')
+    result = pd.merge(word2vec_df, tfidf_df, on='id', how='outer')
+    result = pd.merge(result, bm25f_df, on='id', how='outer')
+    id_summary_df = original_data[['id', 'summary', 'creation_time', "duplicates"]]
+    result = pd.merge(result, id_summary_df, on='id', how='left')
     result = result.fillna(0)
     result["total_score"] = result["word2vec_score"] + result["tfidf_score"] + result["bm25_score"]
     result = result.sort_values(['total_score', 'creation_time'], ascending=[False, True]).head(20)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -15,7 +15,7 @@ This module id responsible for calculating the similarity score between two give
 import warnings
 warnings.filterwarnings('ignore')
 import pandas as pd
-import progressbar as pb
+from Modules import postgres as ps
 import time
 
 # Model-1: Similarity Score - Word2vec -------------------------------------------------------------------------
@@ -37,19 +37,28 @@ def word2vec_preprocess(df):
     """
     print('Word2Vec Preprocessing - Convert Summary to NLP Format')
     start_time = time.time()
-    sample_size = len(df)
-    progress = pb.ProgressBar(maxval=sample_size).start()
-    progvar = 0
     processed_data_nlp = []
     for tup in df.itertuples():
         processed_data_nlp.append((tup.id, tup.product, nlp(tup.processed_summary)))
-        progress.update(progvar + 1)
-        progvar += 1
     global processed_data_nlp_df
     processed_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'processed_summary'])
     global execution_count_word2vec
     execution_count_word2vec += 1
     print("Word2Vec Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
+    global max_id
+    max_id = df['id'].max()
+
+def word2vec_preprocess_update(df):
+    print("Word2Vec Preprocessing Update - Convert Summary to NLP Format")
+    processed_data_nlp = []
+    for id in range(max_id+1,df['id'].max()+1):
+        tup = pd.DataFrame(ps.extract(str(id)))
+        if len(tup) != 0:
+            processed_data_nlp.append((tup["id"][0], tup["product"][0], nlp(str(tup["processed_summary"][0]))))
+    processed_new_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'processed_summary'])
+    global processed_data_nlp_df
+    processed_data_nlp_df = pd.concat([processed_new_data_nlp_df, processed_data_nlp_df], ignore_index= True)
+
 
 # Calculate the cosine similarity score
 def word2vec_similarity(id, df):
@@ -64,6 +73,8 @@ def word2vec_similarity(id, df):
     """
     if execution_count_word2vec == 0:
         word2vec_preprocess(df)
+    elif df['id'].max() > max_id:
+        word2vec_preprocess_update(df)
     print("Word2Vec Score Calculation")
     start_time = time.time()
     similarities_score_list = []
@@ -233,16 +244,10 @@ def n_top_finder(new_bug_df, n_top,main_database):
             A list of data frames which contain the n-top similarity scores
         -------------------------------------------------------
     """
-    sample_size = len(new_bug_df)
-    progress = pb.ProgressBar(maxval=sample_size).start()
-    progvar = 0
     duplicated_similarity_score_list = []
-
     for tup in new_bug_df.itertuples():
         word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df = similarity_score(tup.id, main_database,n_top)
         duplicated_similarity_score_list.append(
             [tup.id, word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df])
-        progress.update(progvar + 1)
-        progvar += 1
     return duplicated_similarity_score_list
 
