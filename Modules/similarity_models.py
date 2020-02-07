@@ -22,6 +22,8 @@ import _pickle as cPickle
 import spacy
 nlp = spacy.load('en_core_web_lg')
 processed_data_nlp_df = []
+global main_data_len
+main_data_len = len(processed_data_nlp_df)
 
 # Convert summary str to nlp format to fasten the computation process
 def word2vec_preprocess(df):
@@ -41,13 +43,11 @@ def word2vec_preprocess(df):
         processed_data_nlp.append((tup.id, tup.product, nlp(tup.processed_summary)))
     global processed_data_nlp_df
     processed_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'processed_summary'])
-
-    # bytes = cPickle.dumps(processed_data_nlp_df_1, 1)
-    # ouf = open('datafile.txt', 'w')
-    # cPickle.dump(bytes, ouf)
-    # ouf.close()
-
-    # processed_data_nlp_df = cPickle.loads(bytes)
+    global main_data_len
+    main_data_len = len(processed_data_nlp_df)
+    print("Save File")
+    with open('processed_data_nlp_df.pickle', 'wb') as f:
+        cPickle.dump(processed_data_nlp_df, f)
 
     execution_flag_word2vec = 1
     with open('execution_flag_word2vec.txt', 'w') as f:
@@ -73,6 +73,13 @@ def word2vec_preprocess_update(df):
             processed_data_nlp.append((tup["id"][0], tup["product"][0], nlp(str(tup["processed_summary"][0]))))
     processed_new_data_nlp_df = pd.DataFrame(processed_data_nlp, columns=['id', 'product', 'processed_summary'])
     global processed_data_nlp_df
+    main_data_len = len(processed_data_nlp_df)
+    if main_data_len == 0:
+        print("Load File")
+        with open('processed_data_nlp_df.pickle', 'rb') as f:
+            processed_data_nlp_df = cPickle.load(f)
+        main_data_len = len(processed_data_nlp_df)
+
     processed_data_nlp_df = pd.concat([processed_new_data_nlp_df, processed_data_nlp_df], ignore_index= True)
 
     max_id = df['id'].max()
@@ -102,11 +109,23 @@ def word2vec_similarity(id, df):
             max_id = int(f.read())
     except:
         max_id = 0
+    global processed_data_nlp_df
+    main_data_len = len(processed_data_nlp_df)
 
     if execution_flag_word2vec == 0:
         word2vec_preprocess(df)
     elif df['id'].max() > max_id:
         word2vec_preprocess_update(df)
+    elif main_data_len == 0:
+        with open('processed_data_nlp_df.pickle', 'rb') as f:
+            processed_data_nlp_df = cPickle.load(f)
+        max_id = processed_data_nlp_df['id'].max()
+        with open('max_id.txt', 'w') as f:
+            f.write('%d' % max_id)
+        word2vec_preprocess_update(df)
+        print("Save File")
+        with open('processed_data_nlp_df.pickle', 'wb') as f:
+            cPickle.dump(processed_data_nlp_df, f)
 
     print("Word2Vec Score Calculation")
     start_time = time.time()
