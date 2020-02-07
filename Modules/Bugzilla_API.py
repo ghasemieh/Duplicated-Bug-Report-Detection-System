@@ -27,7 +27,7 @@ def API_data_extract_2(from_id_number_till_now):
         print("Number of bug reports:", len(data))
         if len(data) > 0:
             # Initiate mongoDB
-            client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+            client = pymongo.MongoClient("mongodb://heroku_f42w4nps:v1snosgrfjgtgo9uu7b32tjl9k@ds061661.mlab.com:61661/heroku_f42w4nps")
             mydb = client["mydatabase"]
             mycol = mydb["bug_report"]
             mycol.create_index([('id', pymongo.ASCENDING)], unique=True)
@@ -74,7 +74,7 @@ def API_data_extract(from_a_preiod_of_time_untill_now='2h'):
         print("Number of bug reports:", len(data))
 
         # Initiate mongoDB
-        client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+        client = pymongo.MongoClient("mongodb://heroku_f42w4nps:v1snosgrfjgtgo9uu7b32tjl9k@ds061661.mlab.com:61661/heroku_f42w4nps")
         mydb = client["mydatabase"]
         mycol = mydb["bug_report"]
         mycol.create_index([('id', pymongo.ASCENDING)], unique=True)
