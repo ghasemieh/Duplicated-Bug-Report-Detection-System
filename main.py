@@ -132,4 +132,4 @@ def n_top(df):
     print("Calculation Done", "--- %s seconds ---\n" % (time.time() - start_time))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
