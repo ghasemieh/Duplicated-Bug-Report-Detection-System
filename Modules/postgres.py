@@ -13,7 +13,7 @@ import os
 import psycopg2
 import pandas as pd
 
-DATABASE_URL = os.environ['postgresql-convex-61624']
+DATABASE_URL = os.environ['postgres://dojqvkyiqwqfrp:5c90e6c8c227c75d217709fd5ba1b912ac64b8d678fe95cf397359081f4ee267@ec2-52-203-160-194.compute-1.amazonaws.com:5432/d9tsv2cqf126ms']
 
 def create_table(remove_current_table = False):
     """
