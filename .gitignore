@@ -1,1 +1,4 @@
 .idea
+/processed_data_nlp_df.pickle
+/test.ipynb
+/venv/

@@ -13,7 +13,7 @@ import pymongo
 import time
 from flask import Flask, render_template, request, redirect
 from pandas import merge, DataFrame
-
+import os
 from Modules import postgres as ps, similarity_models as sm
 from Modules.Bugzilla_API import API_data_extract_2
 from Modules.text_processing import preprocessing
