@@ -9,12 +9,13 @@ https://github.com/ghasemieh
 __Updated__ = 1/29/20, 6:35 AM.
 -------------------------------------------------------
 """
-# Extract new bug report return as dataframe
+import datetime
+
 import pandas as pd
 import pymongo
-import requests
-import datetime
 import pytz
+import requests
+
 
 def API_data_extract_2(from_id_number_till_now):
     controller = 'https://bugzilla.mozilla.org/rest/bug?include_fields=id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary,duplicates&f1=bug_id&o1=greaterthan&v1='
@@ -109,7 +110,7 @@ def API_id_extract(id):
         -------------------------------------------------------
     """
     id_str = str(id)
-    get_bug_url = 'https://bugzilla.mozilla.org/rest/bug/' + id_str +'?include_fields=id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary'
+    get_bug_url = 'https://bugzilla.mozilla.org/rest/bug/' + id_str + '?include_fields=id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary'
     try:
         response = requests.get(get_bug_url)
         response_json = response.json()
@@ -119,6 +120,3 @@ def API_id_extract(id):
     except:
         df = pd.DataFrame([])
         return df
-
-
-

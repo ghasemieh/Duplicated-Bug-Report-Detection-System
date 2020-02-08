@@ -13,6 +13,7 @@ This module id responsible for calculating the similarity score between two give
 """
 
 import warnings
+
 warnings.filterwarnings('ignore')
 import pandas as pd
 from Modules import postgres as ps
@@ -20,10 +21,12 @@ import time
 import _pickle as cPickle
 # Model-1: Similarity Score - Word2vec -------------------------------------------------------------------------
 import spacy
+
 nlp = spacy.load('en_core_web_lg')
 processed_data_nlp_df = []
 global main_data_len
 main_data_len = len(processed_data_nlp_df)
+
 
 # Convert summary str to nlp format to fasten the computation process
 def word2vec_preprocess(df):
@@ -59,6 +62,7 @@ def word2vec_preprocess(df):
 
     print("Word2Vec Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
 
+
 def word2vec_preprocess_update(df):
     print("Word2Vec Preprocessing Update - Convert Summary to NLP Format")
     start_time = time.time()
@@ -67,7 +71,7 @@ def word2vec_preprocess_update(df):
         max_id = int(f.read())
 
     processed_data_nlp = []
-    for id in range(max_id+1,df['id'].max()+1):
+    for id in range(max_id + 1, df['id'].max() + 1):
         tup = pd.DataFrame(ps.extract(str(id)))
         if len(tup) != 0:
             processed_data_nlp.append((tup["id"][0], tup["product"][0], nlp(str(tup["processed_summary"][0]))))
@@ -80,13 +84,14 @@ def word2vec_preprocess_update(df):
             processed_data_nlp_df = cPickle.load(f)
         main_data_len = len(processed_data_nlp_df)
 
-    processed_data_nlp_df = pd.concat([processed_new_data_nlp_df, processed_data_nlp_df], ignore_index= True)
+    processed_data_nlp_df = pd.concat([processed_new_data_nlp_df, processed_data_nlp_df], ignore_index=True)
 
     max_id = df['id'].max()
     with open('max_id.txt', 'w') as f:
         f.write('%d' % max_id)
 
     print("Word2Vec Preprocessing Update Done", "--- %s seconds ---\n" % (time.time() - start_time))
+
 
 # Calculate the cosine similarity score
 def word2vec_similarity(id, df):
@@ -143,11 +148,14 @@ def word2vec_similarity(id, df):
     print("Word2Vec Done", "--- %s seconds ---\n" % (time.time() - start_time))
     return word2vec_similarities_score_df
 
+
 # Model-2: Similarity Score - TF-idf ----------------------------------------------------------------------------
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
+
 tfidf_cosine_similarities = []
 execution_count_tfidf = 0
+
 
 def tfidf_preprocess(df):
     """
@@ -173,6 +181,7 @@ def tfidf_preprocess(df):
     global execution_count_tfidf
     execution_count_tfidf += 1
     print("TF-IDF Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
+
 
 def tfidf_similarities(id, df):
     """
@@ -202,11 +211,14 @@ def tfidf_similarities(id, df):
     print("TF-IDF Done", "--- %s seconds ---\n" % (time.time() - start_time))
     return tfidf_cosine_similarities_score_df
 
+
 # Model-3: Similarity Score - BM25F -----------------------------------------------------------------------------
 from rank_bm25 import BM25Okapi
+
 processed_corpus_list = []
 bm25 = []
 execution_count_bm25 = 0
+
 
 # preprocess - tokenize the summary to token
 def bm25_preprocess(df):
@@ -233,6 +245,7 @@ def bm25_preprocess(df):
     execution_count_bm25 += 1
     print("BM25 Preprocess Done", "--- %s seconds ---" % (time.time() - start_time))
 
+
 # Calculate the similarity score
 def bm25_similarity(id, df):
     """
@@ -252,7 +265,7 @@ def bm25_similarity(id, df):
     product_main = df.loc[lambda df: df['id'] == id, 'product'].array[0]
     query = processed_corpus_list[index_main]
     doc_scores = bm25.get_scores(query)
-    doc_scores_norm = [float(i)/max(doc_scores) for i in doc_scores]
+    doc_scores_norm = [float(i) / max(doc_scores) for i in doc_scores]
     doc_scores_df = pd.DataFrame(doc_scores_norm, columns=['bm25_score'])
     # add id to the score list and remove unsimiliar product
     blanks = []
@@ -267,6 +280,7 @@ def bm25_similarity(id, df):
     doc_scores_df = doc_scores_df.reset_index(drop=True)
     print("BM25 Done", "--- %s seconds ---\n" % (time.time() - start_time))
     return doc_scores_df
+
 
 # Calculate the similarity scores and return the first n top scores  ------------------------------------------------
 def similarity_score(id, df, top_n):
@@ -285,8 +299,9 @@ def similarity_score(id, df, top_n):
     bm25_similarity_df = bm25_similarity(id, df).sort_values(by=['bm25_score'], ascending=False).head(top_n)
     return word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df
 
+
 # Calculate the n-top similar bug report and return the list
-def n_top_finder(new_bug_df, n_top,main_database):
+def n_top_finder(new_bug_df, n_top, main_database):
     """
         -------------------------------------------------------
         Extract the similarity score for a given dataframe and all records in the database one by one
@@ -298,7 +313,7 @@ def n_top_finder(new_bug_df, n_top,main_database):
     """
     duplicated_similarity_score_list = []
     for tup in new_bug_df.itertuples():
-        word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df = similarity_score(tup.id, main_database,n_top)
-        duplicated_similarity_score_list.append([tup.id, word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df])
+        word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df = similarity_score(tup.id, main_database, n_top)
+        duplicated_similarity_score_list.append(
+            [tup.id, word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df])
     return duplicated_similarity_score_list
-

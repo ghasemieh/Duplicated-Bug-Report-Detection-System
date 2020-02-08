@@ -9,13 +9,15 @@ https://github.com/ghasemieh
 __Updated__ = 1/29/20, 6:35 AM.
 -------------------------------------------------------
 """
+import time
+
 import pymongo
+from flask import Flask, render_template, request, redirect
+from pandas import merge, DataFrame
+
+from Modules import postgres as ps, similarity_models as sm
 from Modules.Bugzilla_API import API_data_extract_2
 from Modules.text_processing import preprocessing
-import pandas as pd
-from Modules import postgres as ps, similarity_models as sm
-from flask import Flask, render_template, request, redirect
-import time
 
 app = Flask(__name__)  # Present on the website
 ps.create_table()  # create the table if is not existed
@@ -39,7 +41,7 @@ def home():
             db_read_pointer = int(current_bug_id) - 20
             last_n_bug_report = mycol.find({"id": {"$gt": db_read_pointer}})
             global data_df
-            data_df = pd.DataFrame(list(last_n_bug_report))
+            data_df = DataFrame(list(last_n_bug_report))
             data_df = data_df.sort_values(by='id', ascending=False).reset_index()
             show_df = data_df[["id", "creation_time", "summary", "duplicates"]]
             return render_template('main.html', tables=[show_df.to_html(classes='data')], titles=show_df.columns.values)
@@ -66,13 +68,18 @@ def refresh():
                     for tup in new_bug_df.itertuples():
                         processed_summary = preprocessing(new_bug_df, tup.id, 'summary')
                         bug_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time, tup.status,
-                                         tup.priority, tup.severity, tup.version, tup.summary, processed_summary,tup.duplicates])
-                    processed_data_df = pd.DataFrame(bug_list,columns=["id","type","product","component","creation_time","status","priority"
-                                                             ,"severity","version","summary","processed_summary","duplicates"])
+                                         tup.priority, tup.severity, tup.version, tup.summary, processed_summary,
+                                         tup.duplicates])
+                    processed_data_df = DataFrame(bug_list,
+                                                  columns=["id", "type", "product", "component", "creation_time",
+                                                           "status", "priority"
+                                                      , "severity", "version", "summary", "processed_summary",
+                                                           "duplicates"])
                     # Save into a bug_db SQL database
                     for tup in processed_data_df.itertuples():
                         ps.insert(tup.id, tup.type, tup.product, tup.component, tup.creation_time, tup.status,
-                                  tup.priority, tup.severity, tup.version, tup.summary, tup.processed_summary,tup.duplicates)
+                                  tup.priority, tup.severity, tup.version, tup.summary, tup.processed_summary,
+                                  tup.duplicates)
                     return redirect('/')
                 except:
                     return 'There was an issue adding your records to SQL database'
@@ -88,11 +95,12 @@ def find_similar():
         # try:
         if task_id != '':
             df = ps.extract(task_id)
-                # df = API_id_extract(task_id)
-                # find the similar bug report
+            # df = API_id_extract(task_id)
+            # find the similar bug report
             if not df.empty:
                 n_top(df)
-                return render_template('main.html', tables=[result.to_html(classes='data')],titles=result.columns.values)
+                return render_template('main.html', tables=[result.to_html(classes='data')],
+                                       titles=result.columns.values)
             else:
                 return redirect('/')
         else:
@@ -122,14 +130,15 @@ def n_top(df):
     bm25f_df = similarity_list[0][3]
 
     global result
-    result = pd.merge(word2vec_df, tfidf_df, on='id', how='outer')
-    result = pd.merge(result, bm25f_df, on='id', how='outer')
+    result = merge(word2vec_df, tfidf_df, on='id', how='outer')
+    result = merge(result, bm25f_df, on='id', how='outer')
     id_summary_df = original_data[['id', 'summary', 'creation_time', "duplicates"]]
-    result = pd.merge(result, id_summary_df, on='id', how='left')
+    result = merge(result, id_summary_df, on='id', how='left')
     result = result.fillna(0)
     result["total_score"] = result["word2vec_score"] + result["tfidf_score"] + result["bm25_score"]
     result = result.sort_values(['total_score', 'creation_time'], ascending=[False, True]).head(20)
     print("Calculation Done", "--- %s seconds ---\n" % (time.time() - start_time))
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)

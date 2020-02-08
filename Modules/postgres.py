@@ -10,10 +10,11 @@ __Updated__ = 1/29/20, 6:35 AM.
 -------------------------------------------------------
 """
 
-import psycopg2
 import pandas as pd
+import psycopg2
 
-def create_table(remove_current_table = False):
+
+def create_table(remove_current_table=False):
     """
         -------------------------------------------------------
         Create table using the given name if is not existed. if remove_current_table=True it first removes it and then creates a new one
@@ -23,7 +24,7 @@ def create_table(remove_current_table = False):
             Nothing
         -------------------------------------------------------
     """
-    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
+    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1'")
     cursor = connection.cursor()
     if remove_current_table == True:
         command = "DROP TABLE IF EXISTS bug_db"
@@ -33,7 +34,9 @@ def create_table(remove_current_table = False):
     connection.commit()
     connection.close()
 
-def insert(id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary,duplicates):
+
+def insert(id, type, product, component, creation_time, status, priority, severity, version, summary, processed_summary,
+           duplicates):
     """
         -------------------------------------------------------
         Insert a tuple in the given table if it is not exist.
@@ -43,12 +46,15 @@ def insert(id,type,product,component,creation_time,status,priority,severity,vers
             Nothing
         -------------------------------------------------------
     """
-    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
+    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1'")
     cursor = connection.cursor()
     command = "INSERT INTO bug_db VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (id) DO NOTHING;"
-    cursor.execute(command,(id,type,product,component,creation_time,status,priority,severity,version,summary,processed_summary,duplicates))
+    cursor.execute(command, (
+        id, type, product, component, creation_time, status, priority, severity, version, summary, processed_summary,
+        duplicates))
     connection.commit()
     connection.close()
+
 
 def view():
     """
@@ -60,15 +66,16 @@ def view():
             A data frame of the data
         -------------------------------------------------------
     """
-    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
+    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1'")
     cursor = connection.cursor()
     command = "SELECT * FROM bug_db"
     cursor.execute(command)
     rows = cursor.fetchall()
     connection.close()
     df = pd.DataFrame(rows, columns=["id", "type", "product", "component", "creation_time", "status",
-                                         "priority", "severity", "version", "summary", "processed_summary","duplicates"])
+                                     "priority", "severity", "version", "summary", "processed_summary", "duplicates"])
     return df
+
 
 def delete():
     """
@@ -80,12 +87,13 @@ def delete():
             Nothing
         -------------------------------------------------------
     """
-    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
+    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1'")
     cursor = connection.cursor()
     command = "DELETE FROM bug_db"
     cursor.execute(command)
     connection.commit()
     connection.close()
+
 
 def extract(id):
     """
@@ -97,21 +105,21 @@ def extract(id):
             A data frame of the data
         -------------------------------------------------------
     """
-    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
+    connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1'")
     cursor = connection.cursor()
-    command = "SELECT * FROM bug_db WHERE id ="+id
+    command = "SELECT * FROM bug_db WHERE id =" + id
     cursor.execute(command)
     rows = cursor.fetchall()
     connection.close()
-    if len(rows) != 0 :
+    if len(rows) != 0:
         ls = list([rows[0]])
         df = pd.DataFrame(ls, columns=["id", "type", "product", "component", "creation_time", "status",
-                                   "priority", "severity", "version", "summary", "processed_summary","duplicates"])
+                                       "priority", "severity", "version", "summary", "processed_summary", "duplicates"])
         return df
     else:
         ls = list(rows)
         df = pd.DataFrame(ls, columns=["id", "type", "product", "component", "creation_time", "status",
-                                       "priority", "severity", "version", "summary", "processed_summary","duplicates"])
+                                       "priority", "severity", "version", "summary", "processed_summary", "duplicates"])
         return df
 
 # def update_db():
@@ -124,7 +132,7 @@ def extract(id):
 #             Nothing
 #         -------------------------------------------------------
 #     """
-#     connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1' port='5432'")
+#     connection = psycopg2.connect("dbname='bug_database' user='postgres' password='password123' host='127.0.0.1'")
 #     cursor = connection.cursor()
 #     cursor.execute("INSERT INTO bug_db SELECT * FROM temp_bug_db ON CONFLICT (id) DO NOTHING")
 #     connection.commit()

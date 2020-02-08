@@ -9,15 +9,17 @@ https://github.com/ghasemieh
 __Updated__ = 1/29/20, 6:35 AM.
 -------------------------------------------------------
 """
+import warnings
+
 # Assessment the Model Accuracy -------------------------------------------------------------------------------
 # Calculate the similarity score for the reported duplicated bug report
 import pandas as pd
-import warnings
+
 warnings.filterwarnings('ignore')
 import pickle
-import text_processing as tp
+from Modules import text_processing as tp
 import progressbar as pb
-from similarity_models import similarity_score
+from Modules import similarity_models as sm
 
 # Import dataset
 data = pd.read_csv('Data/TestData2500.csv',sep=',')
@@ -49,7 +51,7 @@ def n_top_finder(new_bug_df, n_top,main_database):
     duplicated_similarity_score_list = []
 
     for tup in new_bug_df.itertuples():
-        word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df = similarity_score(tup.id, main_database,n_top)
+        word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df = sm.similarity_score(tup.id, main_database,n_top)
         duplicated_similarity_score_list.append(
             [tup.id, tup.dup, word2vec_similarity_df, tfidf_similarity_df, bm25_similarity_df])
         progress.update(progvar + 1)

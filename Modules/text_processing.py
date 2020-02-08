@@ -25,6 +25,8 @@ The input is the df name and the textual attribute
 name and the sample size from the df if you want to
 conduct preprocess to a portion of the df
 """
+import warnings
+
 # ---------------------------------------------------------------------------
 # The following is the dependency list of the module
 # conda install -c conda-forge spacy
@@ -35,11 +37,12 @@ conduct preprocess to a portion of the df
 # !python -m spacy download en_core_web_lg
 # ---------------------------------------------------------------------------
 import pandas as pd
-import warnings
+
 warnings.filterwarnings('ignore')
 import spacy
+
 nlp = spacy.load('en_core_web_lg')
-#import nltk
+# import nltk
 # nltk.download('brown')
 # nltk.download('names')
 # nltk.download('wordnet')
@@ -47,11 +50,12 @@ nlp = spacy.load('en_core_web_lg')
 # nltk.download('universal_tagset')
 import wordninja as nj  # for spliting the words in each documents
 # import normalise as ns
-#from pycontractions import Contractions  # for expansion and contrations
+# from pycontractions import Contractions  # for expansion and contrations
 import contractions
 import re  # remove tags.
 import time
 import progressbar as pb
+
 
 def remove_nan(df):
     """
@@ -68,12 +72,13 @@ def remove_nan(df):
     print("Before removing the NaN:")
     print(df.isnull().sum())
     for x in df.itertuples():
-        if type(x.short_desc)!=str: # detect the NaN
+        if type(x.short_desc) != str:  # detect the NaN
             blanks.append(x.Index)
-        elif not x.short_desc: # detect empty string
+        elif not x.short_desc:  # detect empty string
             blanks.append(x.Index)
-    df.drop(blanks,inplace=True)
-    print("\nAfter removing the NaN:\n",df.isnull().sum())
+    df.drop(blanks, inplace=True)
+    print("\nAfter removing the NaN:\n", df.isnull().sum())
+
 
 def remove_nan_processed(df):
     """
@@ -90,12 +95,13 @@ def remove_nan_processed(df):
     print("Before removing the NaN:")
     print(df.isnull().sum())
     for x in df.itertuples():
-        if type(x.short_desc_processed)!=str: # detect the NaN
+        if type(x.short_desc_processed) != str:  # detect the NaN
             blanks.append(x.Index)
-        elif not x.short_desc_processed: # detect empty string
+        elif not x.short_desc_processed:  # detect empty string
             blanks.append(x.Index)
-    df.drop(blanks,inplace=True)
-    print("\nAfter removing the NaN:\n",df.isnull().sum())
+    df.drop(blanks, inplace=True)
+    print("\nAfter removing the NaN:\n", df.isnull().sum())
+
 
 def preprocessing(df, id, text_attribute_name):
     """
@@ -139,19 +145,20 @@ def preprocessing(df, id, text_attribute_name):
     for token in short_desc_doc:
         if token.is_punct == False and token.is_stop == False:
             short_desc_list.append(token)
-        
-    #Convert list to string
-    short_desc_string = ""    
-    for element in short_desc_list:  
-        short_desc_string += str(element) +' '
-    
+
+    # Convert list to string
+    short_desc_string = ""
+    for element in short_desc_list:
+        short_desc_string += str(element) + ' '
+
     # Stemming/Lemmatisation.
     short_desc_lemmata = [token.lemma_ for token in nlp(short_desc_string)]
     short_desc_preprocessed = ' '.join(map(str, short_desc_lemmata))
 
     # Remove single letters
-    result = ' '.join( [w for w in short_desc_preprocessed.split() if len(w)>1] )
+    result = ' '.join([w for w in short_desc_preprocessed.split() if len(w) > 1])
     return result
+
 
 def text_preprocessing(df, text_attribute_name, sample_number=None):
     """
