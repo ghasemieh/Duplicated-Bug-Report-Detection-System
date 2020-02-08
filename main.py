@@ -9,9 +9,8 @@ https://github.com/ghasemieh
 __Updated__ = 1/29/20, 6:35 AM.
 -------------------------------------------------------
 """
-import time
-
 import pymongo
+import time
 from flask import Flask, render_template, request, redirect
 from pandas import merge, DataFrame
 
@@ -35,7 +34,7 @@ def home():
     else:
         try:
             # Read the last 20 bug report from mongodb and put in data_df
-            client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+            client = pymongo.MongoClient(os.environ.get('MONGO_ADDRESS', "mongodb://127.0.0.1:27017/"))
             mydb = client["mydatabase"]
             mycol = mydb["bug_report"]
             db_read_pointer = int(current_bug_id) - 20

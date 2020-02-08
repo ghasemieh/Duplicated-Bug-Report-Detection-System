@@ -10,15 +10,20 @@ __Updated__ = 1/29/20, 6:35 AM.
 -------------------------------------------------------
 """
 
+import os
 import pandas as pd
 import psycopg2
-import os
 
-DATABASE_HOST = os.environ.get('HOME', '127.0.0.1')
-DATABASE_HOST = '192.168.188.1'
+DATABASE_HOST = os.environ.get('DATABASE_HOST', '127.0.0.1')
+DATABASE_PORT = os.environ.get('DATABASE_PORT', '5432')
+DATABASE_USER = os.environ.get('DATABASE_USER', 'postgres')
+DATABASE_PASSWD = os.environ.get('DATABASE_PASSWD', 'password123')
+DATABASE_DATABSE_NAME = os.environ.get('DATABASE_DATABSE_NAME', 'bug_database')
 
 
-def get_connection(host=DATABASE_HOST, port='5432', user='postgres', password='password123', db_name='bug_database'):
+# DATABASE_HOST = '192.168.188.1'
+
+def get_connection(host=DATABASE_HOST, port=DATABASE_PORT, user=DATABASE_USER, password=DATABASE_PASSWD, db_name=DATABASE_DATABSE_NAME):
 	'''
 	creates a connection to PostgreSQL database
 	:param host: PostgreSQL Host address
