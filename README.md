@@ -6,18 +6,31 @@
 As software programs become increasingly large and complex, it is important to improve the quality of software maintenance. Bug report recommendations can significantly improve the triaging of bug reports. It is difficult to inspect the new incoming reports manually to route to the developers who have fixed the duplicate bugs. Automatic identification of Duplicate bug reports is a critical research problem in the software repositories’ mining area.
 
 ## Aim
-The aim of this project is to propose an effective unsupervised model for duplicate bug recommendations.
+The aim of the project is to propose an effective unsupervised and supervised models to detect duplicate bug report in the Bugzilla repository. The search engine finds the top-N most similar reports to a given report, and deduplicate issues faster. Moreover, it presents an analytical dashboard to developers to understand the different aspects of the bug reports’ statistics and major sources of bug generation.
 
-### Method
-The model combines the similarity scores from TF-IDF, Word2Vec and BM25F models.
+## ETL Process
+The search engine extracts data using the Bugzilla REST API https://wiki.mozilla.org/Bugzilla:REST_API and creates a data-lake using MongoDB. Then it verifies the data quality and conducts data wrangling and cleaning. 
 
-### Evaluation Parameters 
-The empirical evaluation is performed on the open datasets of Bugzilla repository. The metrics used for evaluation are Mean Average Precision(MAP), Mean Reciprocal Rank(MRR) and Recall rate.
+## Data Preparation
+Since the data is considered as big data the engine loads the data to Hadoop HDFS and performs text preprocessing using PySpark which includes: 
+- Converting text to lowercase
+- Splitting the words into 3 steps using 
+  1. ASCII character identification for English 
+  2. split by space  
+  3. Wordninja
+- Applying normalizes
+- Applying contractions or expansions
+- Removing punctuations, tags, special characters, digits
+- Stemming
+- Lemmatization. Then it stores the processed data in PostgreSQL. 
 
-### ETL
-Data is available from https://wiki.mozilla.org/Bugzilla:REST_API is source to types of the bug records, where we run cron jobs and fetch the data in incremental way. 
+## Evaluation
+The empirical evaluation is performed on the open datasets of the Bugzilla repository. The metrics used for evaluation are Mean Average Precision (MAP), Mean Reciprocal Rank (MRR) and Recall rate. 
 
-### Visualization
-Web-based framework to show the top most similar/duplicate bugs.
+## Visualization and Presentation
+The top-N most similar reports to a given report is presented on a web page using Flask. Also, It presents the developer the statistical information about the bug reports in a dashboard using D3.js
+
+## Implementation Method
+Implementation Method: The search engine is implemented on AWS using Docker Composer and ECS with Fargate
 
 ## I will complete this article once the project got lunched.
