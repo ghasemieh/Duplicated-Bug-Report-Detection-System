@@ -22,7 +22,9 @@ Since the data is considered as big data the engine loads the data to Hadoop HDF
 - Applying contractions or expansions
 - Removing punctuations, tags, special characters, digits
 - Stemming
-- Lemmatization. Then it stores the processed data in PostgreSQL. 
+- Lemmatization. 
+
+Then it stores the processed data in PostgreSQL. 
 
 ## Evaluation
 The empirical evaluation is performed on the open datasets of the Bugzilla repository. The metrics used for evaluation are Mean Average Precision (MAP), Mean Reciprocal Rank (MRR) and Recall rate. 
@@ -33,4 +35,5 @@ The top-N most similar reports to a given report is presented on a web page usin
 ## Implementation Method
 Implementation Method: The search engine is implemented on AWS using Docker Composer and ECS with Fargate
 
-## I will complete this article once the project got lunched.
+![Image of Bug](/image/Application Structure.jpg)
+
