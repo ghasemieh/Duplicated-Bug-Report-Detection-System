@@ -35,5 +35,5 @@ The top-N most similar reports to a given report is presented on a web page usin
 ## Implementation Method
 Implementation Method: The search engine is implemented on AWS using Docker Composer and ECS with Fargate
 
-![Image of Bug](/image/Application Structure.jpg)
+![Image of Application Process](/image/ApplicationStructure.jpg)
 
