@@ -2,6 +2,7 @@ version: '3'
 services:
   web:
     build: .
+    image: applia65/duplicatebugreportsearchengine:web
     # restart: always
     environment:
       DATABASE_HOST: postgres_docker
@@ -18,7 +19,7 @@ services:
       - mongodb_docker
 
   postgres_docker:
-    image: postgres:10
+    image: postgres:postgres
     # restart: always
     # # Allow access from Development machine
     # ports:
@@ -31,7 +32,7 @@ services:
       POSTGRES_DB: bug_database
 
   mongodb_docker:
-    image: mongo:latest
+    image: mongo:mongodb
     #restart: always
     #environment:
     #  MONGO_INITDB_ROOT_USERNAME: root
