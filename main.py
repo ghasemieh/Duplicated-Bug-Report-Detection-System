@@ -22,7 +22,7 @@ app = Flask(__name__)  # Present on the website
 ps.create_table()  # create the table if is not existed
 with open('current_bug_id.txt', 'r') as f:
     current_bug_id = f.read()  # Set bug id pointer
-
+data_df = DataFrame()
 
 @app.route('/', methods=['POST', 'GET'])
 def home():
@@ -47,7 +47,6 @@ def home():
         except:
             return render_template('main.html', tables=[data_df.to_html(classes='data')], titles=data_df.columns.values)
 
-
 @app.route('/refresh', methods=['GET', 'POST'])
 def refresh():
     if request.method == 'POST' or request.method == 'GET':
@@ -67,18 +66,14 @@ def refresh():
                     for tup in new_bug_df.itertuples():
                         processed_summary = preprocessing(new_bug_df, tup.id, 'summary')
                         bug_list.append([tup.id, tup.type, tup.product, tup.component, tup.creation_time, tup.status,
-                                         tup.priority, tup.severity, tup.version, tup.summary, processed_summary,
-                                         tup.duplicates])
+                                         tup.priority, tup.severity, tup.version, tup.summary, processed_summary,tup.duplicates])
                     processed_data_df = DataFrame(bug_list,
-                                                  columns=["id", "type", "product", "component", "creation_time",
-                                                           "status", "priority"
-                                                      , "severity", "version", "summary", "processed_summary",
-                                                           "duplicates"])
+                                                  columns=["id", "type", "product", "component", "creation_time", "status", "priority"
+                                                           , "severity", "version", "summary", "processed_summary","duplicates"])
                     # Save into a bug_db SQL database
                     for tup in processed_data_df.itertuples():
                         ps.insert(tup.id, tup.type, tup.product, tup.component, tup.creation_time, tup.status,
-                                  tup.priority, tup.severity, tup.version, tup.summary, tup.processed_summary,
-                                  tup.duplicates)
+                                  tup.priority, tup.severity, tup.version, tup.summary, tup.processed_summary,tup.duplicates)
                     return redirect('/')
                 except:
                     return 'There was an issue adding your records to SQL database'
@@ -140,4 +135,4 @@ def n_top(df):
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(host='0.0.0.0',debug=False)

@@ -13,7 +13,6 @@ This module id responsible for calculating the similarity score between two give
 """
 
 import warnings
-
 warnings.filterwarnings('ignore')
 import pandas as pd
 from Modules import postgres as ps
@@ -80,10 +79,11 @@ def word2vec_preprocess_update(df):
     main_data_len = len(processed_data_nlp_df)
     if main_data_len == 0:
         print("Load File")
-        with open('processed_data_nlp_df.pickle', 'rb') as f:
-            processed_data_nlp_df = cPickle.load(f)
-        main_data_len = len(processed_data_nlp_df)
-
+        try:
+            with open('processed_data_nlp_df.pickle', 'rb') as f:
+                processed_data_nlp_df = cPickle.load(f)
+        except:
+            return 'ValueError: unsupported pickle protocol: 5'
     processed_data_nlp_df = pd.concat([processed_new_data_nlp_df, processed_data_nlp_df], ignore_index=True)
 
     max_id = df['id'].max()
