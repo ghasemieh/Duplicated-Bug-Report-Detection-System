@@ -19,7 +19,7 @@ services:
       - mongodb_docker
 
   postgres_docker:
-    image: postgres:postgres
+    image: postgres:10
     # restart: always
     # # Allow access from Development machine
     # ports:
@@ -30,9 +30,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password123
       POSTGRES_DB: bug_database
+    expose:
+      - 5432
 
   mongodb_docker:
-    image: mongo:mongodb
+    image: mongo:latest
     #restart: always
     #environment:
     #  MONGO_INITDB_ROOT_USERNAME: root
