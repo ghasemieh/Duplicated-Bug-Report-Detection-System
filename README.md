@@ -37,5 +37,126 @@ Implementation Method: The search engine is implemented on AWS using Docker Comp
 
 ![Image of Application Process](/image/ApplicationStructure.jpg)
 
+# Installation Guide
+
+To run the application there are two options:
+- Use the docker image
+- Use the source code 
+
+## Implement the Application Using Docker
+
+Please follow the steps below:
+
+1. Install docker CE from https://docs.docker.com/install/linux/docker-ce/ubuntu/
+2. Install docker compose from https://docs.docker.com/compose/install/
+3. Create a vim file with name `docker-compose.yml` where you want to run the application using the content below:
+
+```
+version: '3'
+services:
+  web:
+    build: .
+    image: applia65/duplicatebugreportsearchengine:web
+    # restart: always
+    environment:
+      DATABASE_HOST: postgres_docker
+      DATABASE_USER: postgres
+      DATABASE_PASSWD: password123
+      DATABASE_DATABSE_NAME: bug_database
+      MONGO_ADDRESS: mongodb://mongodb_docker:27017/
+    ports:
+      - "0.0.0.0:5000:5000"
+    depends_on:
+      - postgres_docker
+      - mongodb_docker
+
+  postgres_docker:
+    image: postgres:10
+    # restart: always
+    # # Allow access from Development machine
+    # ports:
+    #  - "0.0.0.0:5432:5432"
+    volumes:
+      - ./pg_data/:/var/lib/postgresql/data:Z
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: bug_database
+
+  mongodb_docker:
+    image: mongo:latest
+    #restart: always
+    #environment:
+    #  MONGO_INITDB_ROOT_USERNAME: root
+    #  MONGO_INITDB_ROOT_PASSWORD: example
+```
+
+4. Excute the code below where you create `docker-compose.yml` and wait until your server download all containers.
+
+```
+sudo docker-compose pull
+```
+
+5. Run the application.
+
+```
+sudo docker-compose up
+```
+
+6. Open your browser using `0.0.0.0:5000` address.
+
+## Implement the Application Using the Source Code
+
+Please follow the steps below:
+
+1. Pull the codes by git
+2. Install all requirements 
+
+```
+pip install --no-cache-dir -r requirements.txt
+```
+
+3. Install the WordNet which is about 900 MB
+
+```
+python -m spacy download en_core_web_lg
+```
+
+4. Install Mongodb from https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
+5. Run the Mongodb service
+
+```
+sudo systemctl start mongod
+```
+
+6. Verify that MongoDB has started successfully.
+
+```
+sudo systemctl status mongod
+```
+
+7. Install PostgreSQL Version 10 from https://www.postgresql.org/download/linux/debian/
+
+8. Run the Postgresql service
+
+```
+sudo systemctl start postgresql
+```
+
+9. Verify that Postgresql has started successfully.
+
+```
+sudo systemctl status postgresql
+```
+
+10. Create a user `postgres` with password `password123`
+
+11. Run the application 
+
+```
+python ./main.py
+```
+
+12. Open your browser using `0.0.0.0:5000` address.
 
 # This article will be completed soon!
