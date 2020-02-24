@@ -48,7 +48,9 @@ To run the application there are two options:
 Please follow the steps below:
 
 1. Install docker CE from https://docs.docker.com/install/linux/docker-ce/ubuntu/
+
 2. Install docker compose from https://docs.docker.com/compose/install/
+
 3. Create a vim file with name `docker-compose.yml` where you want to run the application using the content below:
 
 ```
@@ -105,11 +107,12 @@ sudo docker-compose up
 
 6. Open your browser using `0.0.0.0:5000` address.
 
-## Implement the Application Using the Source Code
+## Implement the Application Using the Source Code Ubuntu
 
 Please follow the steps below:
 
 1. Pull the codes by git
+
 2. Install all requirements 
 
 ```
@@ -123,6 +126,7 @@ python -m spacy download en_core_web_lg
 ```
 
 4. Install MongoDB from https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
+
 5. Run the MongoDB service
 
 ```
@@ -159,4 +163,8 @@ python ./main.py
 
 12. Open your browser using `0.0.0.0:5000` address.
 
-### Please contact me if you have any question.
+### Please contact us if you have any question. 
+#### - Alireza Ghasemieh `alireza@ghasemieh.com`
+#### - Sukhjit Singh Sehra `sukhjit.sehra@ryerson.ca`
+
+### Special thanks to **Sukhjit** for helping me with this project.
