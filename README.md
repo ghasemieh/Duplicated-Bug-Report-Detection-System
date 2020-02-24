@@ -39,6 +39,9 @@ Implementation Method: The search engine is implemented on AWS using Docker Comp
 
 # Installation Guide
 
+## System Requirement
+You need to have at least 10GB of FREE RAM available to run this application.
+
 To run the application there are two options:
 - Use the docker image
 - Use the source code 
