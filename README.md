@@ -171,3 +171,18 @@ python ./main.py
 #### - Sukhjit Singh Sehra `sukhjit.sehra@ryerson.ca`
 
 ### Special thanks to **Sukhjit** for helping me with this project.
+
+## References:
+- POSTER: DWEN: DeepWord Embedding Network for Duplicate Bug Report Detection in Software Repositories, Amar Budhiraja, 2018 ACM/IEEE 40th International Conference on Software Engineering: Companion Proceedings
+- Preventing duplicate bug reports by continuously querying bug reports, Abram Hindle, Empirical Software Engineering, https://doi.org/10.1007/s10664-018-9643-4
+- A comparative study of the performance of IR models on duplicate bug detection, Nilam Kaushik, 2012 16th European Conference on Software Maintenance and Reengineering
+- Duplicate Bug Report Detection with a Combination of Information Retrieval and Topic Modeling, Anh Tuan Nguyen, ASE ’12, September 3-7, 2012, Essen, Germany
+- Studying the needed effort for identifying duplicate issues, Mohamed Sami Rakha, Empir Software Eng, DOI 10.1007/s10664-015-9404-6
+- Revisiting the Performance Evaluation of Automated Approaches for the Retrieval of Duplicate Issue Reports, Mohamed Sami Rakha, DOI 10.1109/TSE.2017.2755005, IEEE Transactions on Software Engineering
+- Detection of Duplicate Defect Reports Using Natural Language Processing, Per Runeson, 29th International Conference on Software Engineering (ICSE'07) 0-7695-2828-7/07
+- Rediscovery Datasets: Connecting Duplicate Reports, Mefta Sadat, 2017 IEEE/ACM 14th International Conference on Mining Software Repositories (MSR)
+- An Approach to Detecting Duplicate Bug Reports using Natural Language and Execution Information, Xiaoyin Wang, ICSE’08, May 10–18, 2008, Leipzig, Germany.
+- Detecting Duplicate Bug Report Using Character N-Gram-Based Features, Ashish Sureka, 2010 Asia Pacific Software Engineering Conference
+- Towards More Accurate Retrieval of Duplicate Bug Reports, Chengnian Sun
+- A Discriminative Model Approach for Accurate Duplicate Bug Report Retrieval, Chengnian Sun, ICSE’10, May 2–8, 2010, Cape Town, South Africa
+- Combining Word Embedding with Information Retrieval to Recommend Similar Bug Reports, Xinli Yang, 2016 IEEE 27th International Symposium on Software Reliability Engineering
