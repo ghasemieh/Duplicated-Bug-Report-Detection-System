@@ -37,6 +37,7 @@ Implementation Method: The search engine is implemented on AWS using Docker Comp
 
 ![Image of Application Process](/image/ApplicationStructure.jpg)
 
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/77Hmcavq7dg/0.jpg)](https://www.youtube.com/watch?v=77Hmcavq7dg)
 
 # Installation Guide
 
