@@ -6,7 +6,7 @@ Babel==2.8.0
 backcall==0.1.0
 bandit==1.6.2
 black==19.10b0
-bleach==3.1.0
+bleach==3.1.4
 blis==0.4.1
 bumpversion==0.5.3
 catalogue==1.0.0
