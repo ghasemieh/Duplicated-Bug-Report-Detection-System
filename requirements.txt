@@ -106,7 +106,7 @@ python-dateutil==2.8.1
 python-dev-tools==2020.1.25
 pytz==2019.3
 pyupgrade==1.26.2
-PyYAML==5.3
+PyYAML==5.4
 pyzmq==18.1.1
 qtconsole==4.6.0
 rank-bm25==0.2
