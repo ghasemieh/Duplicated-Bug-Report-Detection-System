@@ -89,7 +89,7 @@ prometheus-client==0.7.1
 prompt-toolkit==3.0.3
 psycopg2==2.8.4
 ptyprocess==0.6.0
-py==1.8.1
+py==1.10.0
 pyahocorasick==1.4.0
 pycodestyle==2.5.0
 pycparser==2.19
